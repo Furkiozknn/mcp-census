@@ -1,0 +1,165 @@
+{
+  "bulgular": [
+    {
+      "ad": "kayit_satiri",
+      "deger": 500,
+      "payda": null,
+      "tanim": "registry'nin /v0/servers ucundan dönen satır sayısı; sürüm başına bir satır",
+      "yuzde": null
+    },
+    {
+      "ad": "ayri_sunucu_adi",
+      "deger": 467,
+      "payda": 500,
+      "tanim": "satırlardaki ayrı `server.name` değeri sayısı",
+      "yuzde": 93.4
+    },
+    {
+      "ad": "en_son_surumler",
+      "deger": 467,
+      "payda": null,
+      "tanim": "sunucu adı başına tek kayda indirgenmiş küme",
+      "yuzde": null
+    },
+    {
+      "ad": "isLatest_isaretli_satir",
+      "deger": 143,
+      "payda": 500,
+      "tanim": "`_meta[...].isLatest` alanı true olan satır sayısı",
+      "yuzde": 28.6
+    },
+    {
+      "ad": "aktif_sunucu",
+      "deger": 466,
+      "payda": 467,
+      "tanim": "en son sürümünün durumu `active` olan sunucu",
+      "yuzde": 99.8
+    },
+    {
+      "ad": "deposuz_sunucu",
+      "deger": 68,
+      "payda": 467,
+      "tanim": "`server.repository` alanı olmayan sunucu — okunacak kaynak yok",
+      "yuzde": 14.6
+    },
+    {
+      "ad": "sadece_uzak_sunucu",
+      "deger": 145,
+      "payda": 467,
+      "tanim": "yalnızca uzak uç sunan, indirilebilir paketi olmayan sunucu",
+      "yuzde": 31.0
+    },
+    {
+      "ad": "ne_paket_ne_uc",
+      "deger": 6,
+      "payda": 467,
+      "tanim": "ne paket ne uzak uç bildiren sunucu — kurulacak bir şey yok",
+      "yuzde": 1.3
+    },
+    {
+      "ad": "kisa_aciklama",
+      "deger": 1,
+      "payda": 467,
+      "tanim": "açıklaması 20 karakterden kısa sunucu",
+      "yuzde": 0.2
+    },
+    {
+      "ad": "tek_surumlu_sunucu",
+      "deger": 443,
+      "payda": 467,
+      "tanim": "registry'de yalnızca tek sürümü olan sunucu",
+      "yuzde": 94.9
+    }
+  ],
+  "dagilimlar": {
+    "depo_barindiricisi": {
+      "github.com": 399
+    },
+    "durum": {
+      "active": 466,
+      "deprecated": 1
+    },
+    "paket_turu": {
+      "mcpb": 34,
+      "npm": 201,
+      "nuget": 5,
+      "oci": 47,
+      "pypi": 94
+    },
+    "uzak_uc_turu": {
+      "sse": 15,
+      "streamable-http": 180
+    }
+  },
+  "en_cok_surum_yayinlayan": [
+    {
+      "ad": "ai.bowmark/bowmark",
+      "surum_sayisi": 6
+    },
+    {
+      "ad": "io.github.brilliantdirectories/brilliant-directories-mcp",
+      "surum_sayisi": 5
+    },
+    {
+      "ad": "io.github.cyanheads/openfec-mcp-server",
+      "surum_sayisi": 3
+    },
+    {
+      "ad": "io.github.appium/appium-mcp",
+      "surum_sayisi": 3
+    },
+    {
+      "ad": "dev.draugr/draugr",
+      "surum_sayisi": 2
+    },
+    {
+      "ad": "io.github.domdomegg/google-drive-mcp",
+      "surum_sayisi": 2
+    },
+    {
+      "ad": "io.github.KevinRabun/judges",
+      "surum_sayisi": 2
+    },
+    {
+      "ad": "io.github.Patdolitse/piia-engram",
+      "surum_sayisi": 2
+    },
+    {
+      "ad": "io.github.datris/datris",
+      "surum_sayisi": 2
+    },
+    {
+      "ad": "com.teamwork/mcp",
+      "surum_sayisi": 2
+    },
+    {
+      "ad": "io.github.john-broadway/proximo-proxmox",
+      "surum_sayisi": 2
+    },
+    {
+      "ad": "com.linkbreakers/mcp",
+      "surum_sayisi": 2
+    },
+    {
+      "ad": "io.github.ajwentcrazy/lazareus",
+      "surum_sayisi": 2
+    },
+    {
+      "ad": "io.github.mistaike-ai/mistaike-mcp",
+      "surum_sayisi": 2
+    },
+    {
+      "ad": "io.github.hostinger/hostinger-api-mcp",
+      "surum_sayisi": 2
+    }
+  ],
+  "kaynak_manifest": {
+    "arac": "mcp-census",
+    "icerik_ozeti": "c9467f0c0b386719919b647d4c405184dd8814bde58a88a5bfe215291f9fc5b5",
+    "kayit_sayisi": 500,
+    "kaynak": "veri/kayitlar.jsonl'den ornek",
+    "manifest_surumu": 1,
+    "not": "Tam indirmeden tohum 20260916 ile secilmis 500 kayit. Testler ve 'once calistigini gor' icin; sayimin kendisi bundan uretilmez.",
+    "tam_mi": false
+  }
+}

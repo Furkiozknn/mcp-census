@@ -1,0 +1,9 @@
+{
+  "arac": "mcp-census",
+  "icerik_ozeti": "c9467f0c0b386719919b647d4c405184dd8814bde58a88a5bfe215291f9fc5b5",
+  "kayit_sayisi": 500,
+  "kaynak": "veri/kayitlar.jsonl'den ornek",
+  "manifest_surumu": 1,
+  "not": "Tam indirmeden tohum 20260916 ile secilmis 500 kayit. Testler ve 'once calistigini gor' icin; sayimin kendisi bundan uretilmez.",
+  "tam_mi": false
+}

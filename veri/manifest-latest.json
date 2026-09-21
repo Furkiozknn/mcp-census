@@ -1,0 +1,15 @@
+{
+  "arac": "mcp-census",
+  "icerik_ozeti": "2bc93efa4f9ee0f17730b62a7ed85841440c35dfc370502a0b1d2c1c10c2fe9d",
+  "indirme_zamani_utc": "2026-09-16T04:24:06Z",
+  "kayit_sayisi": 32321,
+  "kaynak": "https://registry.modelcontextprotocol.io",
+  "manifest_surumu": 1,
+  "sayfa_boyu": 100,
+  "sayfa_sayisi": 324,
+  "suren_saniye": 272.28,
+  "suzgec": {
+    "version": "latest"
+  },
+  "tam_mi": true
+}

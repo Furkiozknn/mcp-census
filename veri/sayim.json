@@ -1,0 +1,170 @@
+{
+  "bulgular": [
+    {
+      "ad": "kayit_satiri",
+      "deger": 105038,
+      "payda": null,
+      "tanim": "registry'nin /v0/servers ucundan dönen satır sayısı; sürüm başına bir satır",
+      "yuzde": null
+    },
+    {
+      "ad": "ayri_sunucu_adi",
+      "deger": 32318,
+      "payda": 105038,
+      "tanim": "satırlardaki ayrı `server.name` değeri sayısı",
+      "yuzde": 30.8
+    },
+    {
+      "ad": "en_son_surumler",
+      "deger": 32318,
+      "payda": null,
+      "tanim": "sunucu adı başına tek kayda indirgenmiş küme",
+      "yuzde": null
+    },
+    {
+      "ad": "isLatest_isaretli_satir",
+      "deger": 32318,
+      "payda": 105038,
+      "tanim": "`_meta[...].isLatest` alanı true olan satır sayısı",
+      "yuzde": 30.8
+    },
+    {
+      "ad": "aktif_sunucu",
+      "deger": 31972,
+      "payda": 32318,
+      "tanim": "en son sürümünün durumu `active` olan sunucu",
+      "yuzde": 98.9
+    },
+    {
+      "ad": "deposuz_sunucu",
+      "deger": 7439,
+      "payda": 32318,
+      "tanim": "`server.repository` alanı olmayan sunucu — okunacak kaynak yok",
+      "yuzde": 23.0
+    },
+    {
+      "ad": "sadece_uzak_sunucu",
+      "deger": 18183,
+      "payda": 32318,
+      "tanim": "yalnızca uzak uç sunan, indirilebilir paketi olmayan sunucu",
+      "yuzde": 56.3
+    },
+    {
+      "ad": "ne_paket_ne_uc",
+      "deger": 425,
+      "payda": 32318,
+      "tanim": "ne paket ne uzak uç bildiren sunucu — kurulacak bir şey yok",
+      "yuzde": 1.3
+    },
+    {
+      "ad": "kisa_aciklama",
+      "deger": 286,
+      "payda": 32318,
+      "tanim": "açıklaması 20 karakterden kısa sunucu",
+      "yuzde": 0.9
+    },
+    {
+      "ad": "tek_surumlu_sunucu",
+      "deger": 20244,
+      "payda": 32318,
+      "tanim": "registry'de yalnızca tek sürümü olan sunucu",
+      "yuzde": 62.6
+    }
+  ],
+  "dagilimlar": {
+    "depo_barindiricisi": {
+      "github.com": 24841,
+      "gitlab.com": 38
+    },
+    "durum": {
+      "active": 31972,
+      "deprecated": 346
+    },
+    "paket_turu": {
+      "cargo": 51,
+      "mcpb": 1221,
+      "npm": 8907,
+      "nuget": 116,
+      "oci": 919,
+      "pypi": 3785
+    },
+    "uzak_uc_turu": {
+      "sse": 1081,
+      "streamable-http": 19193
+    }
+  },
+  "en_cok_surum_yayinlayan": [
+    {
+      "ad": "io.github.brilliantdirectories/brilliant-directories-mcp",
+      "surum_sayisi": 1177
+    },
+    {
+      "ad": "ai.bowmark/bowmark",
+      "surum_sayisi": 828
+    },
+    {
+      "ad": "io.github.devantler-tech/ksail",
+      "surum_sayisi": 439
+    },
+    {
+      "ad": "com.linkbreakers/mcp",
+      "surum_sayisi": 402
+    },
+    {
+      "ad": "io.github.havilandsoftware/mcp-server-innoday",
+      "surum_sayisi": 342
+    },
+    {
+      "ad": "io.github.hashgraph-online/hol-guard",
+      "surum_sayisi": 295
+    },
+    {
+      "ad": "io.github.kivanccakmak/yaver",
+      "surum_sayisi": 288
+    },
+    {
+      "ad": "app.newsmind/mcp",
+      "surum_sayisi": 271
+    },
+    {
+      "ad": "io.github.KevinRabun/judges",
+      "surum_sayisi": 258
+    },
+    {
+      "ad": "io.github.avabuildsdata/mcp-us-business-data",
+      "surum_sayisi": 252
+    },
+    {
+      "ad": "com.local-mcp/local-mcp",
+      "surum_sayisi": 250
+    },
+    {
+      "ad": "io.github.appium/appium-mcp",
+      "surum_sayisi": 245
+    },
+    {
+      "ad": "io.github.yonatangross/orchestkit",
+      "surum_sayisi": 222
+    },
+    {
+      "ad": "com.senzing/mcp",
+      "surum_sayisi": 219
+    },
+    {
+      "ad": "ai.intuitek.the-stall/the-stall",
+      "surum_sayisi": 204
+    }
+  ],
+  "kaynak_manifest": {
+    "arac": "mcp-census",
+    "icerik_ozeti": "c36cf8e700eab15772714d198e5ff17292e666288e2873117ffadfe90feb2297",
+    "indirme_zamani_utc": "2026-09-16T04:08:56Z",
+    "kayit_sayisi": 105038,
+    "kaynak": "https://registry.modelcontextprotocol.io",
+    "manifest_surumu": 1,
+    "sayfa_boyu": 100,
+    "sayfa_sayisi": 1051,
+    "suren_saniye": 902.71,
+    "tam_mi": true
+  }
+}

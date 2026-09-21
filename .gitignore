@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+dist/
+build/
+*.egg-info/
+
+# Ham veri buyuk; surumlenmis ornek "veri/ornek/" altinda tutulur.
+veri/kayitlar.jsonl
+veri/kayitlar-latest.jsonl
