@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      # Calisma zamani bagimliligi bilerek YOK (pyproject: dependencies = []).
+      # Yalnizca dev grubu (pytest) kuruluyor.
+      - name: Install dependencies
+        run: uv sync --group dev
+
+      - name: Run tests
+        run: uv run pytest -v
+
+      # Arac bir CLI olarak kuruluyor; testler gecse de giris noktasi
+      # bozuk olabilir. Bu adim paketin gercekten cagrilabildigini sinar.
+      - name: CLI calisiyor mu
+        run: uv run mcp-census --help
