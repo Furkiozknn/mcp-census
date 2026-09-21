@@ -2,6 +2,8 @@
 
 # mcp-census
 
+[![CI](https://github.com/Furkiozknn/mcp-census/actions/workflows/ci.yml/badge.svg)](https://github.com/Furkiozknn/mcp-census/actions/workflows/ci.yml)
+
 ### **Resmî MCP Registry'nin yeniden üretilebilir sayımı.**
 
 *Kaç sunucu var, kaçının okunacak kodu var, kaçı sizin makinenizde hiç çalışmıyor.*
