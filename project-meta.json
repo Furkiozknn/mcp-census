@@ -1,0 +1,68 @@
+{
+  "schema_version": "1.0.0",
+  "id": "mcp-census",
+  "owner": "Furkiozknn",
+  "repository": "https://github.com/Furkiozknn/mcp-census",
+  "homepage": null,
+  "releases": "https://github.com/Furkiozknn/mcp-census/releases",
+  "status": "active",
+  "category": "research",
+  "platform": [
+    "cli"
+  ],
+  "primary_language": "Python",
+  "technologies": [
+    "Python 3.11+",
+    "zero runtime dependencies"
+  ],
+  "version": "0.1.0",
+  "license": "MIT",
+  "topics": [],
+  "summary": "Reproducible count of the official MCP Registry: the same question asked three ways gives three different numbers, and this measures why.",
+  "key_features": [
+    "Asks the official MCP Registry the same question three ways and shows why the three answers differ",
+    "Finds that roughly a quarter of registry entries have no source code to read",
+    "Measures the count over time instead of quoting a single snapshot",
+    "Reproducible: the sample data and the fetch/analyse pipeline are both in the repository"
+  ],
+  "media": {
+    "hero": null,
+    "screenshots": [],
+    "gifs": [],
+    "videos": []
+  },
+  "tests": {
+    "count": 44,
+    "source": "CI log: `44 passed`",
+    "measured": "2026-09-21"
+  },
+  "ci": {
+    "workflows": [
+      "ci.yml"
+    ],
+    "badge": "https://github.com/Furkiozknn/mcp-census/actions/workflows/ci.yml/badge.svg"
+  },
+  "docs": {
+    "readme": "README.md",
+    "changelog": null,
+    "roadmap": null,
+    "security": null,
+    "contributing": null,
+    "license_file": "LICENSE"
+  },
+  "social": {
+    "headline": "How many MCP servers are there? Ask three ways, get three numbers.",
+    "hashtags": [
+      "mcp",
+      "modelcontextprotocol",
+      "opensource",
+      "datascience"
+    ],
+    "primary_link": "https://github.com/Furkiozknn/mcp-census"
+  },
+  "provenance": {
+    "generated_at": "2026-09-22",
+    "generator": "ghcc/gen_meta.py",
+    "rule": "mechanical fields read from the repository and the GitHub API; editorial fields hand-written and reviewed; no field is generated from a guess"
+  }
+}
