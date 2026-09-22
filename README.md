@@ -1,6 +1,6 @@
-<div align="center">
+![mcp-census — resmî MCP Registry'nin yeniden üretilebilir sayımı: aynı uca sorulan aynı soru 105.038 satır, 32.318 ayrı sunucu ve 31.972 yayında cevabını veriyor](assets/banner.svg)
 
-# mcp-census
+<div align="center">
 
 [![CI](https://github.com/Furkiozknn/mcp-census/actions/workflows/ci.yml/badge.svg)](https://github.com/Furkiozknn/mcp-census/actions/workflows/ci.yml)
 
@@ -60,6 +60,8 @@ destekliyor ve tam olarak sunucu başına bir satır döndürüyor —
 `mcp-census indir --surum latest`.
 
 ## İkinci bulgu: registry'nin dörtte birinin okunacak kodu yok
+
+![Okunacak kodu olmayan kayıtlar, ölçekli: 32.318 sunucunun 7.439'unda repository alanı hiç yok, 18.183'ü yalnızca uzak uç sunuyor, 425'i ne paket ne uzak uç bildiriyor](assets/okunacak-kod.svg)
 
 | Ölçüm | Sunucu | Oran |
 |---|---:|---:|
