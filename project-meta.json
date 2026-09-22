@@ -17,7 +17,18 @@
   ],
   "version": "0.1.0",
   "license": "MIT",
-  "topics": [],
+  "topics": [
+    "cli",
+    "data-analysis",
+    "mcp",
+    "mcp-registry",
+    "measurement",
+    "model-context-protocol",
+    "open-data",
+    "python",
+    "reproducible-research",
+    "zero-dependency"
+  ],
   "summary": "Reproducible count of the official MCP Registry: the same question asked three ways gives three different numbers, and this measures why.",
   "key_features": [
     "Asks the official MCP Registry the same question three ways and shows why the three answers differ",
@@ -26,7 +37,7 @@
     "Reproducible: the sample data and the fetch/analyse pipeline are both in the repository"
   ],
   "media": {
-    "hero": null,
+    "hero": "assets/banner.svg",
     "screenshots": [],
     "gifs": [],
     "videos": []
