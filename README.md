@@ -8,6 +8,10 @@
 
 *Kaç sunucu var, kaçının okunacak kodu var, kaçı sizin makinenizde hiç çalışmıyor.*
 
+![mcp-census raporu: 105.038 kayıt satırı, 32.318 ayrı sunucu adı, 31.972 aktif sunucu ve her satırın ne anlama geldiğinin tanımı](assets/demo.gif)
+
+<sub>Gerçek çıktı, ağ olmadan: <code>veri/</code> klasöründeki indirilmiş anlık görüntüden üretiliyor, bu yüzden aynı komut yarın da aynı sayıları veriyor.</sub>
+
 <br/>
 
 ![lisans](https://img.shields.io/badge/lisans-MIT-3fb950?style=flat-square&labelColor=0b0b0f)
