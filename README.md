@@ -207,6 +207,31 @@ MIT.
 
 ---
 
+## Aynı soru, aylar sonra
+
+Tek bir sayım bir fotoğraftır. `veri/sayim.json` 16 Eylül 2026'da ölçüldü ve o
+günden sonra registry'nin nereye gittiğini söylemiyor — oysa bir sayım aracının
+asıl değeri orada: "kaç sunucunun okunacak kodu yok" sorusunun cevabı artıyor
+mu, azalıyor mu?
+
+`Sayim` iş akışı ayda bir kez indiriyor, sayıyor, önceki sayımla ölçüt ölçüt
+karşılaştırıyor ve [`veri/zaman-serisi.csv`](veri/zaman-serisi.csv) dosyasına bir
+satır ekliyor. Sayılar oynamadıysa hiçbir şey commit etmiyor.
+
+Ham kayıtlar depoda durmuyor ve durmayacak: 105 bin satır, her ay yeniden.
+Duran şey hesaplanmış sayım, onu üreten manifest ve serinin o ayki satırı —
+üçü birlikte, ham veriye erişimi olmayan birinin de seriyi okuyabilmesi için
+yeterli.
+
+```bash
+mcp-census karsilastir veri/ornek/kayitlar.jsonl yeni.jsonl   # iki indirme
+```
+
+Ölçülmeyen bir ölçüt seride **boş** kalıyor, sıfıra çevrilmiyor: "o gün
+ölçülmedi" ile "o gün sıfırdı" aynı şey değil, ve bir zaman serisinde bu fark
+her şeydir. Sütun sırası sabit ve bir testle kilitli; bir CSV'nin sütun sırası
+değişirse eski satırlar okunamaz hâle gelir.
+
 ## Bu ekosistemden başka projeler
 
 - **[ajans-os](https://github.com/Furkiozknn/ajans-os)** — araştırma-önce kurulmuş, ADR ve sözleşmeli bir ajans OS'u

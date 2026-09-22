@@ -245,3 +245,117 @@ def karsilastir(eski: list[dict], yeni: list[dict]) -> dict[str, Any]:
                  "ikisi farklı şeyler, manifest sayfa sayısına bakın."
         ),
     }
+
+
+# --------------------------------------------------------------------------
+# zaman serisi
+# --------------------------------------------------------------------------
+#
+# `karsilastir` iki İNDİRMEYİ sunucu adı düzeyinde karşılaştırıyor ve bir
+# sayımı savunmak için var. Aşağıdakiler farklı bir soruyu cevaplıyor: aynı
+# ölçüm aylar içinde nereye gidiyor?
+#
+# Ham kayıtlar depoda durmuyor -- 105 bin satır, her indirmede yeniden. Ama
+# `veri/sayim.json` duruyor, ve bir sayımın zaman içindeki seyri ham veriden
+# bağımsız olarak anlamlı: "kaç sunucunun okunacak kodu yok" sorusunun cevabı
+# artıyor mu, azalıyor mu? Tek bir sayı bunu söyleyemez.
+
+
+def sayim_farki(eski: dict, yeni: dict) -> dict[str, Any]:
+    """İki sayımı ölçüt ölçüt karşılaştırır.
+
+    İkisinde de bulunmayan bir ölçüt sessizce atlanmıyor: yeni eklenen ölçüt
+    ``yeni_olcutler``, kaybolan ``dusen_olcutler`` altında adıyla duruyor.
+    Bir ölçütün adı değiştiğinde seri kopar, ve bunun görünmesi gerekir.
+    """
+    def indeks(s: dict) -> dict[str, Any]:
+        return {b["ad"]: b for b in (s.get("bulgular") or [])}
+
+    e, y = indeks(eski), indeks(yeni)
+    ortak = sorted(set(e) & set(y))
+    degisenler = []
+    for ad in ortak:
+        onceki, simdiki = e[ad].get("deger"), y[ad].get("deger")
+        if onceki is None or simdiki is None:
+            continue
+        fark = simdiki - onceki
+        degisenler.append({
+            "ad": ad,
+            "onceki": onceki,
+            "simdiki": simdiki,
+            "fark": fark,
+            "yuzde": (round(100.0 * fark / onceki, 2) if onceki else None),
+            "tanim": y[ad].get("tanim", ""),
+        })
+
+    hareketli = [d for d in degisenler if d["fark"] != 0]
+    return {
+        "eski_zaman": (eski.get("kaynak_manifest") or {}).get("indirme_zamani_utc"),
+        "yeni_zaman": (yeni.get("kaynak_manifest") or {}).get("indirme_zamani_utc"),
+        "olcutler": degisenler,
+        "hareketli_sayisi": len(hareketli),
+        "yeni_olcutler": sorted(set(y) - set(e)),
+        "dusen_olcutler": sorted(set(e) - set(y)),
+        "degisti_mi": bool(hareketli or (set(y) ^ set(e))),
+    }
+
+
+#: Zaman serisinin sütunları. Sıra sabit: bir CSV'nin sütun sırası değişirse
+#: eski satırlar okunamaz hâle gelir, ve bu dosyanın tek amacı eski satırların
+#: okunabilir kalması.
+SERI_SUTUNLARI = (
+    "indirme_zamani_utc",
+    "kayit_satiri",
+    "ayri_sunucu_adi",
+    "aktif_sunucu",
+    "deposuz_sunucu",
+    "sadece_uzak_sunucu",
+    "ne_paket_ne_uc",
+    "kisa_aciklama",
+    "tek_surumlu_sunucu",
+)
+
+
+def seri_satiri(sayim_sonucu: dict) -> dict[str, Any]:
+    """Bir sayımdan zaman serisinin bir satırını çıkarır.
+
+    Eksik bir ölçüt boş bırakılıyor, sıfıra çevrilmiyor: "o gün ölçülmedi" ile
+    "o gün sıfırdı" aynı şey değil ve bir seride bu fark her şeydir.
+    """
+    bulgular = {b["ad"]: b.get("deger") for b in (sayim_sonucu.get("bulgular") or [])}
+    satir: dict[str, Any] = {
+        "indirme_zamani_utc": (sayim_sonucu.get("kaynak_manifest") or {}).get("indirme_zamani_utc", "")
+    }
+    for ad in SERI_SUTUNLARI[1:]:
+        satir[ad] = bulgular.get(ad, "")
+    return satir
+
+
+def seriye_ekle(yol: Path, satir: dict[str, Any]) -> bool:
+    """Satırı CSV'ye ekler. Aynı zaman damgası zaten varsa hiçbir şey yapmaz.
+
+    Dönen değer: satır gerçekten eklendi mi. İş akışı bunu commit edip
+    etmeyeceğine karar vermek için kullanıyor.
+    """
+    import csv
+
+    yol = Path(yol)
+    damga = str(satir.get("indirme_zamani_utc") or "")
+    if not damga:
+        raise ValueError("zaman damgasi olmayan bir satir seriye eklenemez")
+
+    var_olan: list[dict[str, str]] = []
+    if yol.is_file():
+        with open(yol, encoding="utf-8", newline="") as f:
+            var_olan = list(csv.DictReader(f))
+        if any(r.get("indirme_zamani_utc") == damga for r in var_olan):
+            return False
+
+    yol.parent.mkdir(parents=True, exist_ok=True)
+    yeni = yol.is_file() is False
+    with open(yol, "a", encoding="utf-8", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=list(SERI_SUTUNLARI), lineterminator="\n")
+        if yeni:
+            w.writeheader()
+        w.writerow({k: satir.get(k, "") for k in SERI_SUTUNLARI})
+    return True

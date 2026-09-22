@@ -202,3 +202,118 @@ def test_paydali_bulgularda_deger_paydayi_asmaz():
     for b in analyze.sayim(kayitlar)["bulgular"]:
         if b["payda"]:
             assert b["deger"] <= b["payda"], f"{b['ad']}: {b['deger']} > {b['payda']}"
+
+
+# --------------------------------------------------------------------------
+# zaman serisi
+# --------------------------------------------------------------------------
+
+
+def _sayim(zaman: str, **olcutler) -> dict:
+    return {
+        "kaynak_manifest": {"indirme_zamani_utc": zaman},
+        "bulgular": [
+            {"ad": ad, "deger": deger, "tanim": "test", "payda": None, "yuzde": None}
+            for ad, deger in olcutler.items()
+        ],
+    }
+
+
+def test_sayim_farki_olcut_olcut_karsilastiriyor():
+    f = analyze.sayim_farki(
+        _sayim("2026-01-01T00:00:00Z", aktif_sunucu=100, deposuz_sunucu=10),
+        _sayim("2026-02-01T00:00:00Z", aktif_sunucu=120, deposuz_sunucu=10),
+    )
+    d = {o["ad"]: o for o in f["olcutler"]}
+    assert d["aktif_sunucu"]["fark"] == 20
+    assert d["aktif_sunucu"]["yuzde"] == 20.0
+    assert d["deposuz_sunucu"]["fark"] == 0
+    assert f["hareketli_sayisi"] == 1
+    assert f["degisti_mi"] is True
+
+
+def test_hicbir_sey_degismediyse_degisti_mi_yanlis():
+    s = _sayim("2026-01-01T00:00:00Z", aktif_sunucu=100)
+    assert analyze.sayim_farki(s, s)["degisti_mi"] is False
+
+
+def test_yeni_ve_dusen_olcutler_adiyla_bildiriliyor():
+    f = analyze.sayim_farki(
+        _sayim("2026-01-01T00:00:00Z", eski_olcut=1),
+        _sayim("2026-02-01T00:00:00Z", yeni_olcut=1),
+    )
+    assert f["yeni_olcutler"] == ["yeni_olcut"]
+    assert f["dusen_olcutler"] == ["eski_olcut"]
+    assert f["degisti_mi"] is True
+
+
+def test_sifirdan_buyumede_yuzde_uydurulmuyor():
+    f = analyze.sayim_farki(
+        _sayim("2026-01-01T00:00:00Z", x=0),
+        _sayim("2026-02-01T00:00:00Z", x=5),
+    )
+    o = f["olcutler"][0]
+    assert o["fark"] == 5
+    assert o["yuzde"] is None
+
+
+def test_seri_satiri_sutunlari_dolduruyor():
+    s = _sayim("2026-01-01T00:00:00Z", kayit_satiri=10, aktif_sunucu=5)
+    satir = analyze.seri_satiri(s)
+    assert satir["indirme_zamani_utc"] == "2026-01-01T00:00:00Z"
+    assert satir["kayit_satiri"] == 10
+    assert satir["aktif_sunucu"] == 5
+
+
+def test_olculmeyen_olcut_sifira_cevrilmiyor():
+    """Bir seride "o gün ölçülmedi" ile "o gün sıfırdı" aynı şey değildir."""
+    satir = analyze.seri_satiri(_sayim("2026-01-01T00:00:00Z", kayit_satiri=10))
+    assert satir["aktif_sunucu"] == ""
+    assert satir["aktif_sunucu"] != 0
+
+
+def test_seriye_ekleme_basliği_bir_kez_yaziyor(tmp_path):
+    yol = tmp_path / "seri.csv"
+    assert analyze.seriye_ekle(yol, analyze.seri_satiri(_sayim("2026-01-01T00:00:00Z", kayit_satiri=1)))
+    assert analyze.seriye_ekle(yol, analyze.seri_satiri(_sayim("2026-02-01T00:00:00Z", kayit_satiri=2)))
+    satirlar = yol.read_text(encoding="utf-8").strip().splitlines()
+    assert len(satirlar) == 3
+    assert satirlar[0].startswith("indirme_zamani_utc,")
+
+
+def test_ayni_damga_iki_kez_eklenmiyor(tmp_path):
+    yol = tmp_path / "seri.csv"
+    satir = analyze.seri_satiri(_sayim("2026-01-01T00:00:00Z", kayit_satiri=1))
+    assert analyze.seriye_ekle(yol, satir) is True
+    assert analyze.seriye_ekle(yol, satir) is False
+    assert len(yol.read_text(encoding="utf-8").strip().splitlines()) == 2
+
+
+def test_damgasiz_satir_reddediliyor(tmp_path):
+    import pytest as _pytest
+
+    with _pytest.raises(ValueError):
+        analyze.seriye_ekle(tmp_path / "seri.csv", {"kayit_satiri": 1})
+
+
+def test_sutun_sirasi_sabit(tmp_path):
+    """Sütun sırası değişirse eski satırlar okunamaz hâle gelir."""
+    assert analyze.SERI_SUTUNLARI[0] == "indirme_zamani_utc"
+    assert "aktif_sunucu" in analyze.SERI_SUTUNLARI
+    yol = tmp_path / "seri.csv"
+    analyze.seriye_ekle(yol, analyze.seri_satiri(_sayim("2026-01-01T00:00:00Z", kayit_satiri=1)))
+    basliklar = yol.read_text(encoding="utf-8").splitlines()[0].split(",")
+    assert basliklar == list(analyze.SERI_SUTUNLARI)
+
+
+def test_gercek_sayim_dosyasindan_satir_cikiyor():
+    from pathlib import Path as _P
+
+    yol = _P(__file__).resolve().parents[1] / "veri" / "sayim.json"
+    if not yol.is_file():
+        return
+    import json as _json
+
+    satir = analyze.seri_satiri(_json.loads(yol.read_text(encoding="utf-8")))
+    assert satir["indirme_zamani_utc"]
+    assert isinstance(satir["kayit_satiri"], int)

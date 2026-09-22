@@ -45,13 +45,15 @@
     "videos": []
   },
   "tests": {
-    "count": 44,
-    "source": "CI log: `44 passed`",
-    "measured": "2026-09-21"
+    "count": 55,
+    "framework": "pytest",
+    "command": "uv run pytest -q",
+    "evidence": "55 passed"
   },
   "ci": {
     "workflows": [
       "ci.yml",
+      "sayim.yml",
       "yayinla.yml"
     ],
     "badge": "https://github.com/Furkiozknn/mcp-census/actions/workflows/ci.yml/badge.svg"

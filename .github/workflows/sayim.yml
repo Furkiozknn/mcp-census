@@ -1,0 +1,109 @@
+# Sayim, tek seferlik olmaktan cikip zaman serisine donuyor.
+#
+# veri/sayim.json 16 Eylul 2026'da olculdu ve o gunden beri registry'nin
+# nereye gittigini kimse olcmedi. Bir sayim aracinin asil degeri tek bir
+# sayida degil, o sayinin seyrinde: "kac sunucunun okunacak kodu yok"
+# sorusunun cevabi artiyor mu, azaliyor mu?
+#
+# Ham kayitlar (105 bin satir) depoda durmuyor ve durmamali. Duran sey
+# hesaplanmis sayim ve onun zaman serisi -- ikisi de kucuk, ikisi de
+# ham veriden bagimsiz olarak anlamli.
+#
+# Indirme ~15 dakika suruyor (1051 sayfa), bu yuzden ayda bir. Elle de
+# tetiklenebilir.
+
+name: Sayim
+
+on:
+  schedule:
+    # Ayin ilk gunu, 04:10 UTC. Indirme uzun surdugu icin gunun sakin saati.
+    - cron: "10 4 1 * *"
+  workflow_dispatch:
+    inputs:
+      azami_sayfa:
+        description: "kac sayfa indirilsin (bos = hepsi; deneme icin 5 yazin)"
+        required: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sayim
+  cancel-in-progress: false
+
+jobs:
+  say:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+      - run: uv sync --group dev
+
+      - name: Registry'yi indir
+        run: |
+          set -euo pipefail
+          ek=""
+          if [ -n "${{ github.event.inputs.azami_sayfa }}" ]; then
+            ek="--azami-sayfa ${{ github.event.inputs.azami_sayfa }}"
+          fi
+          # shellcheck disable=SC2086
+          uv run mcp-census --veri veri indir --sessiz $ek
+
+      - name: Sayimi uret
+        run: uv run mcp-census --veri veri say
+
+      # Karsilastirma ONCEKI sayim ile yapiliyor: ham kayitlar depoda
+      # olmadigi icin sunucu adi duzeyinde degil, olcut duzeyinde.
+      - name: Onceki sayimla karsilastir ve seriye ekle
+        id: fark
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os, subprocess
+          from pathlib import Path
+          from mcp_census import analyze
+
+          yeni = json.loads(Path("veri/sayim.json").read_text(encoding="utf-8"))
+          onceki_ham = subprocess.run(
+              ["git", "show", "HEAD:veri/sayim.json"],
+              capture_output=True, text=True)
+          eski = json.loads(onceki_ham.stdout) if onceki_ham.returncode == 0 else {}
+
+          fark = analyze.sayim_farki(eski, yeni) if eski else {"degisti_mi": True, "olcutler": []}
+          eklendi = analyze.seriye_ekle(Path("veri/zaman-serisi.csv"), analyze.seri_satiri(yeni))
+
+          satirlar = ["### Sayim", ""]
+          km = yeni.get("kaynak_manifest") or {}
+          satirlar.append("Indirme: `%s`, %s satir, %s sayfa."
+                          % (km.get("indirme_zamani_utc"), km.get("kayit_sayisi"), km.get("sayfa_sayisi")))
+          satirlar.append("")
+          if fark.get("olcutler"):
+              satirlar += ["| olcut | onceki | simdiki | fark |", "| --- | ---: | ---: | ---: |"]
+              for o in fark["olcutler"]:
+                  isaret = "+" if o["fark"] > 0 else ""
+                  satirlar.append("| `%s` | %s | %s | %s%s |"
+                                  % (o["ad"], o["onceki"], o["simdiki"], isaret, o["fark"]))
+          for anahtar, baslik in (("yeni_olcutler", "Yeni olcut"), ("dusen_olcutler", "Dusen olcut")):
+              if fark.get(anahtar):
+                  satirlar.append("")
+                  satirlar.append("%s: %s" % (baslik, ", ".join("`%s`" % x for x in fark[anahtar])))
+          satirlar.append("")
+          satirlar.append("Seriye satir eklendi: **%s**" % ("evet" if eklendi else "hayir, ayni damga zaten var"))
+          Path(os.environ["GITHUB_STEP_SUMMARY"]).write_text("\n".join(satirlar) + "\n", encoding="utf-8")
+          PY
+
+      # Ham kayitlar commit EDILMIYOR: 105 bin satir, her ay yeniden.
+      # Duran sey hesaplanmis sayim, manifest ve serinin bir satiri.
+      - name: Degisen bir sey varsa commit et
+        run: |
+          set -eu
+          git add veri/sayim.json veri/manifest*.json veri/zaman-serisi.csv 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "sayilar oynamadi; commit yok"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore: aylik sayim"
+          git push
