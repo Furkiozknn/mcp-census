@@ -6,6 +6,7 @@
     mcp-census indir    registry'yi çeker, ham satırları + künyeyi yazar
     mcp-census say      ham satırlardan sayımı üretir (ağ yok)
     mcp-census rapor    sayımı okunur metne çevirir (ağ yok)
+    mcp-census seri     tam bir sayımı zaman serisine ekler (ağ yok)
 
 `say` ve `rapor` ağa çıkmadığı için, elinizdeki `kayitlar.jsonl` ile
 sonuçlar her seferinde aynı çıkar. Bir sayıya itiraz eden kişi aynı dosyayı
@@ -17,12 +18,49 @@ from __future__ import annotations
 import argparse
 import io
 import json
+import os
+import re
 import sys
 from pathlib import Path
 
-from . import analyze, fetch
+from . import __version__, analyze, fetch
 
 VARSAYILAN_VERI = Path("veri")
+
+# `--surum` değeri çıktı dosyasının adına giriyor (kayitlar-<surum>.jsonl).
+# Yol ayırıcısı ya da `..` içeren bir değer dosyayı veri klasörünün dışına
+# yazdırabilirdi; yalnızca düz bir ad kabul ediliyor.
+_SURUM_DESENI = re.compile(r"[A-Za-z0-9][A-Za-z0-9._+-]{0,63}")
+
+
+def _surum_turu(deger: str) -> str:
+    if not _SURUM_DESENI.fullmatch(deger) or ".." in deger:
+        raise argparse.ArgumentTypeError(
+            f"geçersiz sürüm süzgeci {deger!r}: harf/rakam ile başlayan, yalnızca "
+            "harf, rakam, '.', '_', '+', '-' içeren bir değer olmalı (ör. latest)"
+        )
+    return deger
+
+
+def _pozitif_tamsayi(deger: str) -> int:
+    try:
+        n = int(deger)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"tamsayı değil: {deger!r}") from None
+    if n < 1:
+        raise argparse.ArgumentTypeError(f"en az 1 olmalı: {n}")
+    return n
+
+
+def _taban_turu(deger: str) -> str:
+    try:
+        return fetch.taban_dogrula(deger)
+    except fetch.RegistryHatasi as e:
+        raise argparse.ArgumentTypeError(str(e)) from None
+
+
+class _GirdiHatasi(Exception):
+    """Kullanıcıya tek satır olarak gösterilecek, çıkış 2 veren hata."""
 
 
 def _cikti_utf8() -> None:
@@ -78,7 +116,13 @@ def komut_say(a: argparse.Namespace) -> int:
 
     manifest_yolu = veri / "manifest.json"
     if manifest_yolu.exists():
-        sonuc["kaynak_manifest"] = json.loads(manifest_yolu.read_text(encoding="utf-8"))
+        try:
+            manifest = json.loads(manifest_yolu.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as e:
+            raise _GirdiHatasi(f"{manifest_yolu} geçerli JSON değil: {e}") from e
+        if not isinstance(manifest, dict):
+            raise _GirdiHatasi(f"{manifest_yolu} bir JSON nesnesi değil")
+        sonuc["kaynak_manifest"] = manifest
 
     analyze.sayimi_yaz(sonuc, veri / "sayim.json")
     print(f"sayım yazıldı -> {veri}/sayim.json")
@@ -98,7 +142,7 @@ def komut_rapor(a: argparse.Namespace) -> int:
     if not sayim_yolu.exists():
         print(f"hata: {sayim_yolu} yok. Önce `mcp-census say`.", file=sys.stderr)
         return 2
-    s = json.loads(sayim_yolu.read_text(encoding="utf-8"))
+    s = analyze.sayim_oku(sayim_yolu)
 
     if a.json:
         print(json.dumps(s, ensure_ascii=False, indent=2, sort_keys=True))
@@ -126,7 +170,7 @@ def komut_rapor(a: argparse.Namespace) -> int:
         ek(f"  {b['ad']}")
         ek(f"      {b['tanim']}")
     ek("")
-    for baslik, d in s["dagilimlar"].items():
+    for baslik, d in (s.get("dagilimlar") or {}).items():
         if not d:
             continue
         ek(f"DAĞILIM — {baslik}")
@@ -134,7 +178,7 @@ def komut_rapor(a: argparse.Namespace) -> int:
             ek(f"  {k:<26} {v:>9}")
         ek("")
     ek("EN ÇOK SÜRÜM YAYINLAYAN")
-    for x in s["en_cok_surum_yayinlayan"][:10]:
+    for x in (s.get("en_cok_surum_yayinlayan") or [])[:10]:
         ek(f"  {x['ad']:<44} {x['surum_sayisi']:>5} sürüm")
 
     metin = "\n".join(satirlar)
@@ -149,6 +193,9 @@ def komut_rapor(a: argparse.Namespace) -> int:
 
 
 def komut_karsilastir(a: argparse.Namespace) -> int:
+    for yol in (a.eski, a.yeni):
+        if not Path(yol).is_file():
+            raise _GirdiHatasi(f"{yol} yok ya da bir dosya değil")
     eski = fetch.jsonl_oku(Path(a.eski))
     yeni = fetch.jsonl_oku(Path(a.yeni))
     sonuc = analyze.karsilastir(eski, yeni)
@@ -174,25 +221,57 @@ def komut_karsilastir(a: argparse.Namespace) -> int:
     return 0 if sonuc["yalnizca_ekleme_mi"] else 1
 
 
+def komut_seri(a: argparse.Namespace) -> int:
+    veri = Path(a.veri)
+    sayim_yolu = veri / "sayim.json"
+    if not sayim_yolu.exists():
+        print(f"hata: {sayim_yolu} yok. Önce `mcp-census say`.", file=sys.stderr)
+        return 2
+    yeni = analyze.sayim_oku(sayim_yolu)
+    uygun, neden = analyze.seriye_uygun_mu(yeni)
+    if not uygun:
+        print(f"hata: {neden}", file=sys.stderr)
+        return 2
+
+    fark: dict = {"degisti_mi": True, "olcutler": []}
+    if a.onceki:
+        fark = analyze.sayim_farki(analyze.sayim_oku(Path(a.onceki)), yeni)
+
+    seri_yolu = Path(a.seri) if a.seri else veri / "zaman-serisi.csv"
+    eklendi = analyze.seriye_ekle(seri_yolu, analyze.seri_satiri(yeni))
+    ozet = analyze.seri_ozeti(fark, yeni, eklendi)
+    print(ozet, end="")
+    if a.ozet:
+        with io.open(a.ozet, "a", encoding="utf-8", newline="\n") as f:
+            f.write(ozet)
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     _cikti_utf8()
     p = argparse.ArgumentParser(
         prog="mcp-census",
         description="Resmî MCP Registry'nin yeniden üretilebilir sayımı.",
+        epilog="Çıkış kodları: 0 başarılı · 1 karsilastir kayıp kayıt buldu · "
+               "2 girdi/ağ/dosya hatası.",
     )
+    p.add_argument("--version", action="version",
+                   version=f"%(prog)s {__version__}")
     p.add_argument("--veri", default=str(VARSAYILAN_VERI),
                    help="veri klasörü (varsayılan: veri)")
     alt = p.add_subparsers(dest="komut", required=True)
 
     i = alt.add_parser("indir", help="registry'yi indir")
-    i.add_argument("--taban", default=fetch.VARSAYILAN_TABAN)
-    i.add_argument("--sayfa-boyu", type=int, default=fetch.SAYFA_BOYU)
-    i.add_argument("--azami-sayfa", type=int, default=None,
+    i.add_argument("--taban", type=_taban_turu, default=fetch.VARSAYILAN_TABAN,
+                   help="registry adresi, yalnızca http(s) (varsayılan: %(default)s)")
+    i.add_argument("--sayfa-boyu", type=_pozitif_tamsayi, default=fetch.SAYFA_BOYU,
+                   help="sayfa başına kayıt (varsayılan: %(default)s)")
+    i.add_argument("--azami-sayfa", type=_pozitif_tamsayi, default=None,
                    help="test için tavan; verilirse sayım TAM DEĞİL sayılır")
-    i.add_argument("--surum", default=None, metavar="SUZGEC",
+    i.add_argument("--surum", type=_surum_turu, default=None, metavar="SUZGEC",
                    help="registry'nin version süzgeci; `latest` sunucu başına "
                         "tek satır döndürür. Çıktı kayitlar-latest.jsonl olur.")
-    i.add_argument("--sessiz", action="store_true")
+    i.add_argument("--sessiz", action="store_true", help="ilerleme satırlarını basma")
     i.set_defaults(fn=komut_indir)
 
     s = alt.add_parser("say", help="indirilmiş satırlardan sayımı üret (ağ yok)")
@@ -210,8 +289,33 @@ def main(argv: list[str] | None = None) -> int:
     k.add_argument("--json", action="store_true")
     k.set_defaults(fn=komut_karsilastir)
 
+    z = alt.add_parser("seri",
+                       help="tam bir sayımı veri/zaman-serisi.csv'ye ekle (ağ yok)")
+    z.add_argument("--onceki", default=None, metavar="SAYIM_JSON",
+                   help="karşılaştırılacak önceki sayim.json")
+    z.add_argument("--seri", default=None, metavar="CSV",
+                   help="seri dosyası (varsayılan: <veri>/zaman-serisi.csv)")
+    z.add_argument("--ozet", default=None, metavar="DOSYA",
+                   help="Markdown özeti bu dosyanın sonuna da ekle "
+                        "(ör. $GITHUB_STEP_SUMMARY)")
+    z.set_defaults(fn=komut_seri)
+
     a = p.parse_args(argv)
-    return a.fn(a)
+    try:
+        return a.fn(a)
+    except (_GirdiHatasi, fetch.RegistryHatasi, analyze.SayimHatasi) as e:
+        print(f"hata: {e}", file=sys.stderr)
+        return 2
+    except BrokenPipeError:
+        # Çıktıyı okuyan taraf kapandı (ör. `mcp-census rapor | head`). Bu bir
+        # hata değil; Python'un çıkışta ikinci kez patlamaması için stdout
+        # /dev/null'a yönlendiriliyor. 141 = 128 + SIGPIPE, kabuk geleneği.
+        os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
+        return 141
+    except OSError as e:
+        yer = f"{e.filename}: " if e.filename else ""
+        print(f"hata: {yer}{e.strerror or e}", file=sys.stderr)
+        return 2
 
 
 if __name__ == "__main__":

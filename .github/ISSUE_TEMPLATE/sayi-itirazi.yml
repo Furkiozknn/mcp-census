@@ -1,0 +1,32 @@
+name: Bir sayiya itiraz
+description: Bir olcut yanlis sayiyor, tanimi yaniltici ya da sende farkli bir sayi cikiyor
+title: "[sayi] "
+labels: ["sayim"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Bu deponun butun amaci sayilarin tartisilabilir olmasi. Ayni veride
+        ayni komut ayni sonucu vermeli; vermiyorsa ya da tanim yanlissa bu
+        bir hatadir.
+  - type: input
+    id: olcut
+    attributes:
+      label: Hangi olcut?
+      placeholder: "deposuz_sunucu"
+    validations:
+      required: true
+  - type: input
+    id: ozet
+    attributes:
+      label: Hangi veri? (manifest.json -> icerik_ozeti)
+      description: Ayni ozet = ayni veri. Kendi indirmense ozetini yaz.
+    validations:
+      required: true
+  - type: textarea
+    id: itiraz
+    attributes:
+      label: Itiraz
+      description: Beklenen sayi ve neden; mumkunse onu gosteren bir kayit (server.name).
+    validations:
+      required: true

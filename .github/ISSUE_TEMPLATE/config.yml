@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Guvenlik acigi (gizli bildirim)
+    url: https://github.com/Furkiozknn/mcp-census/security/advisories/new
+    about: Guvenlik aciklarini herkese acik issue yerine buradan bildir.

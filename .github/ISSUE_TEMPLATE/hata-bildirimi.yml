@@ -1,0 +1,27 @@
+name: Hata bildirimi
+description: Bir komut beklenmeyen sekilde davrandi ya da coktu
+title: "[hata] "
+labels: ["hata"]
+body:
+  - type: textarea
+    id: komut
+    attributes:
+      label: Calistirdigin komut ve ciktisi
+      description: Komutu ve ciktiyi (hata mesaji dahil) aynen yapistir.
+      render: console
+    validations:
+      required: true
+  - type: textarea
+    id: beklenen
+    attributes:
+      label: Ne olmasini bekliyordun?
+    validations:
+      required: true
+  - type: input
+    id: surum
+    attributes:
+      label: Surum ve ortam
+      description: "`mcp-census --version`, isletim sistemi, Python surumu"
+      placeholder: "mcp-census 0.2.0, Ubuntu 24.04, Python 3.12"
+    validations:
+      required: true
