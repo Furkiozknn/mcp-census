@@ -13,7 +13,16 @@ concurrency:
 
 jobs:
   test:
+    name: test (Python ${{ matrix.python }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      # pyproject `requires-python = ">=3.11"` diyor; iddia edilen her surum
+      # burada gercekten kosuyor.
+      matrix:
+        python: ["3.11", "3.12", "3.13", "3.14"]
+    env:
+      UV_PYTHON: ${{ matrix.python }}
     steps:
       - uses: actions/checkout@v7
 
@@ -21,9 +30,10 @@ jobs:
         uses: astral-sh/setup-uv@v7
 
       # Calisma zamani bagimliligi bilerek YOK (pyproject: dependencies = []).
-      # Yalnizca dev grubu (pytest) kuruluyor.
+      # Yalnizca dev grubu (pytest) kuruluyor. --locked: uv.lock pyproject'ten
+      # saptiysa burada kirilir, sessizce yeniden cozulmez.
       - name: Install dependencies
-        run: uv sync --group dev
+        run: uv sync --locked --group dev
 
       - name: Run tests
         run: uv run pytest -v
@@ -31,4 +41,50 @@ jobs:
       # Arac bir CLI olarak kuruluyor; testler gecse de giris noktasi
       # bozuk olabilir. Bu adim paketin gercekten cagrilabildigini sinar.
       - name: CLI calisiyor mu
-        run: uv run mcp-census --help
+        run: |
+          set -euo pipefail
+          uv run mcp-census --version
+          uv run mcp-census --help
+
+      # Test sayisi README rozetinde, banner'da ve project-meta.json'da yaziyor
+      # ve daha once iki kez sessizce kaydi (44 -> 55 -> ...). Burada kilitli.
+      - name: Belgelenen test sayisi gercek mi
+        if: matrix.python == '3.13'
+        run: |
+          set -euo pipefail
+          n=$(uv run pytest -o addopts="" --collect-only -q | sed -nE 's/^([0-9]+) tests? collected.*/\1/p')
+          echo "toplanan test: $n"
+          test -n "$n"
+          grep -q "badge/test-$n%20ge" README.md || { echo "README rozeti $n demiyor" >&2; exit 1; }
+          grep -q "pytest        # $n test" README.md || { echo "README Testler bolumu $n demiyor" >&2; exit 1; }
+          grep -q "\"count\": $n," project-meta.json || { echo "project-meta.json $n demiyor" >&2; exit 1; }
+          grep -q "· $n test ·" assets/banner.svg || { echo "banner.svg $n demiyor" >&2; exit 1; }
+
+      # README'deki "indirmeden dene" yolu: depodaki 500 kayitlik ornek.
+      # `say` deterministik; urettigi dosya depodakiyle bayt bayt ayni olmali.
+      - name: Ornek veriyle README yolu
+        run: |
+          set -euo pipefail
+          uv run mcp-census --veri veri/ornek say
+          uv run mcp-census --veri veri/ornek rapor > /dev/null
+          git diff --exit-code veri/ornek/sayim.json
+
+  paket:
+    name: Paket (build + twine check + temiz kurulum)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+
+      - run: uv build
+      - run: uvx twine check --strict dist/*
+
+      # Tekerlegi depodan bagimsiz, bos bir ortama kur ve giris noktasini cagir.
+      - name: Tekerlek temiz ortamda calisiyor mu
+        run: |
+          set -euo pipefail
+          uv venv "$RUNNER_TEMP/temiz"
+          VIRTUAL_ENV="$RUNNER_TEMP/temiz" uv pip install dist/*.whl
+          cd "$RUNNER_TEMP"
+          "$RUNNER_TEMP/temiz/bin/mcp-census" --version
+          "$RUNNER_TEMP/temiz/bin/mcp-census" --help > /dev/null

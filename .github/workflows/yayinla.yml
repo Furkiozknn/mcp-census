@@ -12,9 +12,8 @@
 #     Workflow name:    yayinla.yml
 #     Environment name: pypi
 #
-# v0.1.0 etiketi bu depoda zaten var, yani "etiket at, yayinlansin" yolu
-# burada ise yaramaz. Bu yuzden etiket paketi URETIR ve DOGRULAR; PyPI'a
-# yukleme adimi bilerek elle tetiklenir:
+# Etiket (v*) paketi URETIR ve DOGRULAR; PyPI'a yukleme adimi bilerek elle
+# tetiklenir (v0.1.0 etiketi bu is akisindan once atildi):
 #   Actions -> Yayinla -> Run workflow -> `yayinla` kutusunu isaretle
 # Bekleyen yayinci tanimlandiktan sonra otomatik yayini istersen `yayinla`
 # isindeki `if:` satirini `github.event_name == 'push' || inputs.yayinla`
@@ -44,7 +43,7 @@ jobs:
     name: Paketi uret ve dogrula
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v7
 
       - name: Etiket ile pyproject surumu ayni mi
@@ -53,13 +52,17 @@ jobs:
           set -euo pipefail
           etiket="${GITHUB_REF_NAME#v}"
           bildirilen=$(python3 -c "import re;print(re.search(r'^version = \"([^\"]+)\"', open('pyproject.toml').read(), re.M).group(1))")
-          echo "etiket=$etiket  pyproject=$bildirilen"
+          paket=$(python3 -c "import re;print(re.search(r'^__version__ = \"([^\"]+)\"', open('mcp_census/__init__.py').read(), re.M).group(1))")
+          echo "etiket=$etiket  pyproject=$bildirilen  __version__=$paket"
           test "$etiket" = "$bildirilen"
+          test "$etiket" = "$paket"
+          # Etiketlenen her surumun CHANGELOG'da kendi bolumu olmali.
+          grep -q "^## \[$etiket\]" CHANGELOG.md
 
       - run: uv build
-      - run: uvx twine check dist/*
+      - run: uvx twine check --strict dist/*
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: dist
           path: dist/
@@ -76,7 +79,7 @@ jobs:
     permissions:
       id-token: write   # Trusted Publishing icin ZORUNLU
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: dist
           path: dist/
