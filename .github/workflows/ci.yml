@@ -46,8 +46,9 @@ jobs:
           uv run mcp-census --version
           uv run mcp-census --help
 
-      # Test sayisi README rozetinde, banner'da ve project-meta.json'da yaziyor
-      # ve daha once iki kez sessizce kaydi (44 -> 55 -> ...). Burada kilitli.
+      # Test sayisi README'de ve project-meta.json'da yaziyor ve daha once iki
+      # kez sessizce kaydi (44 -> 55 -> ...). Burada kilitli. Banner'da artik
+      # sayi yok: ortak sablondan gelir ve eskiyecek bir sayi tasimaz.
       - name: Belgelenen test sayisi gercek mi
         if: matrix.python == '3.13'
         run: |
@@ -58,7 +59,6 @@ jobs:
           grep -q "badge/test-$n%20ge" README.md || { echo "README rozeti $n demiyor" >&2; exit 1; }
           grep -q "pytest        # $n test" README.md || { echo "README Testler bolumu $n demiyor" >&2; exit 1; }
           grep -q "\"count\": $n," project-meta.json || { echo "project-meta.json $n demiyor" >&2; exit 1; }
-          grep -q "· $n test ·" assets/banner.svg || { echo "banner.svg $n demiyor" >&2; exit 1; }
 
       # README'deki "indirmeden dene" yolu: depodaki 500 kayitlik ornek.
       # `say` deterministik; urettigi dosya depodakiyle bayt bayt ayni olmali.

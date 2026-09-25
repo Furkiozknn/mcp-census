@@ -1,4 +1,4 @@
-![mcp-census — resmî MCP Registry'nin yeniden üretilebilir sayımı: aynı uca sorulan aynı soru 105.038 satır, 32.318 ayrı sunucu ve 31.972 yayında cevabını veriyor](https://raw.githubusercontent.com/Furkiozknn/mcp-census/master/assets/banner.svg)
+![mcp-census — resmî MCP Registry'nin yeniden üretilebilir sayımı: aynı soru üç yoldan soruluyor ve cevapların neden farklı olduğu ölçülüyor](https://raw.githubusercontent.com/Furkiozknn/mcp-census/master/assets/banner.svg)
 
 <div align="center">
 
