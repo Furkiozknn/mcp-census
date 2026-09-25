@@ -17,10 +17,39 @@
 ![lisans](https://img.shields.io/badge/lisans-MIT-3fb950?style=flat-square&labelColor=0b0b0f)
 ![python](https://img.shields.io/badge/python-3.11%2B-3776ab?style=flat-square&labelColor=0b0b0f)
 ![bağımlılık](https://img.shields.io/badge/ba%C4%9F%C4%B1ml%C4%B1l%C4%B1k-0-3fb950?style=flat-square&labelColor=0b0b0f)
-![test](https://img.shields.io/badge/test-44%20ge%C3%A7iyor-6cb6ff?style=flat-square&labelColor=0b0b0f)
+![test](https://img.shields.io/badge/test-55%20ge%C3%A7iyor-6cb6ff?style=flat-square&labelColor=0b0b0f)
 ![ölçülen](https://img.shields.io/badge/%C3%B6l%C3%A7%C3%BClen-32.318%20sunucu-c9a961?style=flat-square&labelColor=0b0b0f)
 
 </div>
+
+<details>
+<summary><b>In English</b></summary>
+
+<br>
+
+**A reproducible count of the official MCP Registry.** It answers how many servers there are, how many have code you can read, and how many never run on your machine. The raw data, the code that produced each number and the definition of each number are all in this repository, so anyone can re-derive the numbers. The rest of this README is in Turkish.
+
+On 16 September 2026 the whole registry was downloaded:
+
+| Question | Answer |
+|---|---:|
+| Rows the `/v0/servers` endpoint returns | **105,038** |
+| Distinct servers | **32,318** |
+| Still `active` | **31,972** |
+
+The endpoint returns one row per **version**, not per server. The mean is 3.25 versions per server, but the median is 1, so the inflation comes from a few repositories; one server alone accounts for 1,177 rows. Counting pages and calling the result "N servers" therefore overstates the total about threefold. The registry's `?version=latest` filter returns exactly one row per server (`mcp-census indir --surum latest`).
+
+**A quarter of the registry has no code you can read.** 23.0% of servers declare no `repository` at all. 56.3% offer only a remote endpoint and no downloadable package, so whatever code you can read is not necessarily the code that runs.
+
+```bash
+uv run mcp-census --veri veri/ornek say      # a 500-record sample ships with the repo
+uv run mcp-census --veri veri/ornek rapor
+uv run mcp-census indir --surum latest       # the only command that uses the network
+```
+
+`say` (count), `rapor` (report) and `karsilastir` (compare two snapshots) read only files on disk. Zero dependencies. The suite never touches the network.
+
+</details>
 
 ---
 
@@ -177,7 +206,7 @@ mcp_census/
 ## Testler
 
 ```bash
-uv run pytest        # 44 test
+uv run pytest        # 55 test
 ```
 
 Hiçbiri ağa çıkmaz: `fetch` fonksiyonları test edilebilir bir `getirici`
