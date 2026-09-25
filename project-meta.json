@@ -15,7 +15,7 @@
     "Python 3.11+",
     "zero runtime dependencies"
   ],
-  "version": "0.1.0",
+  "version": "0.2.0",
   "license": "MIT",
   "topics": [
     "cli",
@@ -45,10 +45,10 @@
     "videos": []
   },
   "tests": {
-    "count": 55,
+    "count": 104,
     "framework": "pytest",
-    "command": "uv run pytest -q",
-    "evidence": "55 passed"
+    "command": "uv run pytest",
+    "evidence": "104 passed"
   },
   "ci": {
     "workflows": [
@@ -60,11 +60,11 @@
   },
   "docs": {
     "readme": "README.md",
-    "changelog": null,
+    "changelog": "CHANGELOG.md",
     "version_history": null,
     "roadmap": null,
-    "security": null,
-    "contributing": null,
+    "security": "SECURITY.md",
+    "contributing": "CONTRIBUTING.md",
     "license_file": "LICENSE"
   },
   "social": {

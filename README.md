@@ -1,4 +1,4 @@
-![mcp-census — resmî MCP Registry'nin yeniden üretilebilir sayımı: aynı uca sorulan aynı soru 105.038 satır, 32.318 ayrı sunucu ve 31.972 yayında cevabını veriyor](assets/banner.svg)
+![mcp-census — resmî MCP Registry'nin yeniden üretilebilir sayımı: aynı uca sorulan aynı soru 105.038 satır, 32.318 ayrı sunucu ve 31.972 yayında cevabını veriyor](https://raw.githubusercontent.com/Furkiozknn/mcp-census/master/assets/banner.svg)
 
 <div align="center">
 
@@ -8,16 +8,16 @@
 
 *Kaç sunucu var, kaçının okunacak kodu var, kaçı sizin makinenizde hiç çalışmıyor.*
 
-![mcp-census raporu: 105.038 kayıt satırı, 32.318 ayrı sunucu adı, 31.972 aktif sunucu ve her satırın ne anlama geldiğinin tanımı](assets/demo.gif)
+![mcp-census raporu: 105.038 kayıt satırı, 32.318 ayrı sunucu adı, 31.972 aktif sunucu ve her satırın ne anlama geldiğinin tanımı](https://raw.githubusercontent.com/Furkiozknn/mcp-census/master/assets/demo.gif)
 
 <sub>Gerçek çıktı, ağ olmadan: <code>veri/</code> klasöründeki indirilmiş anlık görüntüden üretiliyor, bu yüzden aynı komut yarın da aynı sayıları veriyor.</sub>
 
 <br/>
 
 ![lisans](https://img.shields.io/badge/lisans-MIT-3fb950?style=flat-square&labelColor=0b0b0f)
-![python](https://img.shields.io/badge/python-3.11%2B-3776ab?style=flat-square&labelColor=0b0b0f)
+![python](https://img.shields.io/badge/python-3.11%E2%80%933.14-3776ab?style=flat-square&labelColor=0b0b0f)
 ![bağımlılık](https://img.shields.io/badge/ba%C4%9F%C4%B1ml%C4%B1l%C4%B1k-0-3fb950?style=flat-square&labelColor=0b0b0f)
-![test](https://img.shields.io/badge/test-55%20ge%C3%A7iyor-6cb6ff?style=flat-square&labelColor=0b0b0f)
+![test](https://img.shields.io/badge/test-104%20ge%C3%A7iyor-6cb6ff?style=flat-square&labelColor=0b0b0f)
 ![ölçülen](https://img.shields.io/badge/%C3%B6l%C3%A7%C3%BClen-32.318%20sunucu-c9a961?style=flat-square&labelColor=0b0b0f)
 
 </div>
@@ -42,16 +42,40 @@ The endpoint returns one row per **version**, not per server. The mean is 3.25 v
 **A quarter of the registry has no code you can read.** 23.0% of servers declare no `repository` at all. 56.3% offer only a remote endpoint and no downloadable package, so whatever code you can read is not necessarily the code that runs.
 
 ```bash
+git clone https://github.com/Furkiozknn/mcp-census && cd mcp-census
+uv run mcp-census rapor                      # the 16 Sep 2026 count, from veri/sayim.json
 uv run mcp-census --veri veri/ornek say      # a 500-record sample ships with the repo
 uv run mcp-census --veri veri/ornek rapor
-uv run mcp-census indir --surum latest       # the only command that uses the network
+uv run mcp-census indir --surum latest       # the only command that uses the network (~5 min)
 ```
 
-`say` (count), `rapor` (report) and `karsilastir` (compare two snapshots) read only files on disk. Zero dependencies. The suite never touches the network.
+`say` (count), `rapor` (report), `karsilastir` (compare two snapshots) and `seri` (append a full count to the time series) read only files on disk. Zero runtime dependencies, Python 3.11–3.14. The test suite never touches the network. A scheduled workflow re-counts the registry monthly into [`veri/zaman-serisi.csv`](veri/zaman-serisi.csv).
 
 </details>
 
 ---
+
+## 30 saniyede dene
+
+İndirme gerekmez: 16 Eylül 2026 sayımı ve 500 kayıtlık bir örnek depoda.
+Gereken tek şey [uv](https://pypi.org/project/uv/) (Python 3.11+ yoksa uv onu da indirir).
+
+```bash
+git clone https://github.com/Furkiozknn/mcp-census && cd mcp-census
+uv run mcp-census rapor                     # yukarıdaki GIF'teki rapor, ağ yok
+uv run mcp-census --veri veri/ornek say     # örnekten sayımı baştan üret, ağ yok
+uv run mcp-census --veri veri/ornek rapor
+```
+
+`say` deterministik: ikinci komut depodaki `veri/ornek/sayim.json` dosyasını
+bayt bayt aynı yeniden yazar (`git status` temiz kalır; CI bunu her push'ta
+denetliyor). Registry'nin bugünkü hâline bakmak için ağa çıkan tek komut:
+
+```bash
+uv run mcp-census --veri /tmp/deneme indir --azami-sayfa 2   # ~1 sn, 200 satır, "TAM DEĞİL" işaretli
+uv run mcp-census --veri /tmp/deneme say
+uv run mcp-census --veri /tmp/deneme rapor
+```
 
 ## Neden
 
@@ -94,7 +118,7 @@ destekliyor ve tam olarak sunucu başına bir satır döndürüyor —
 
 ## İkinci bulgu: registry'nin dörtte birinin okunacak kodu yok
 
-![Okunacak kodu olmayan kayıtlar, ölçekli: 32.318 sunucunun 7.439'unda repository alanı hiç yok, 18.183'ü yalnızca uzak uç sunuyor, 425'i ne paket ne uzak uç bildiriyor](assets/okunacak-kod.svg)
+![Okunacak kodu olmayan kayıtlar, ölçekli: 32.318 sunucunun 7.439'unda repository alanı hiç yok, 18.183'ü yalnızca uzak uç sunuyor, 425'i ne paket ne uzak uç bildiriyor](https://raw.githubusercontent.com/Furkiozknn/mcp-census/master/assets/okunacak-kod.svg)
 
 | Ölçüm | Sunucu | Oran |
 |---|---:|---:|
@@ -144,33 +168,96 @@ sunucu büyümüş, indirmenin bir yeri eksik kalmamış. Bu ayrım önemli oldu
 için komut kayıp gördüğünde **çıkış 1** veriyor: CI'da eksik kalmış bir
 indirme sessizce geçemez.
 
-## Kullanım
+## Aynı soru, aylar sonra
+
+Tek bir sayım bir fotoğraftır. `veri/sayim.json` 16 Eylül 2026'da ölçüldü ve o
+günden sonra registry'nin nereye gittiğini söylemiyor — oysa bir sayım aracının
+asıl değeri orada: "kaç sunucunun okunacak kodu yok" sorusunun cevabı artıyor
+mu, azalıyor mu?
+
+[`Sayim`](.github/workflows/sayim.yml) iş akışı ayın ilk günü registry'nin
+tamamını indiriyor, sayıyor, önceki sayımla ölçüt ölçüt karşılaştırıyor
+(tablo iş akışı özetinde) ve [`veri/zaman-serisi.csv`](veri/zaman-serisi.csv)
+dosyasına bir satır ekliyor. Her tam koşu bir commit üretir — sayılar
+oynamasa bile, çünkü "bu ay da ölçüldü ve aynıydı" bilgisi serinin kendisidir.
+
+**Kısmi bir deneme seriye girmez.** İş akışı elle `azami_sayfa` ile
+tetiklenirse yalnızca raporu özetine yazar, hiçbir şey commit etmez; ayrıca
+`mcp-census seri` künyesinde `tam_mi: true` olmayan sayımı reddeder. 500
+satırlık bir deneme seride "registry bir ayda %99 küçüldü" diye görünürdü.
+
+Ham kayıtlar depoda durmuyor ve durmayacak: 105 bin satır, her ay yeniden.
+Duran şey hesaplanmış sayım, onu üreten manifest ve serinin o ayki satırı —
+üçü birlikte, ham veriye erişimi olmayan birinin de seriyi okuyabilmesi için
+yeterli.
+
+Ölçülmeyen bir ölçüt seride **boş** kalıyor, sıfıra çevrilmiyor: "o gün
+ölçülmedi" ile "o gün sıfırdı" aynı şey değil, ve bir zaman serisinde bu fark
+her şeydir. Sütun sırası sabit ve bir testle kilitli; bir CSV'nin sütun sırası
+değişirse eski satırlar okunamaz hâle gelir.
+
+## Kurulum
+
+Depoyla birlikte (örnek veri ve sayım dahil) — önerilen yol:
 
 ```bash
-uv sync                      # bağımlılık yok, sadece paket kurulumu
-uv run mcp-census indir      # registry'yi çeker -> veri/kayitlar.jsonl + manifest.json
-uv run mcp-census say        # sayımı üretir (ağ yok)  -> veri/sayim.json
-uv run mcp-census rapor      # okunur metin (ağ yok)
+git clone https://github.com/Furkiozknn/mcp-census && cd mcp-census
+uv sync                      # çalışma zamanı bağımlılığı yok; yalnızca paketin kendisi
+uv run mcp-census --help
 ```
 
-Ağa çıkan tek komut `indir`. `say`, `rapor` ve `karsilastir` yalnızca diskteki
-dosyaları okur — bu yüzden bir sayıya itiraz eden kişi aynı `kayitlar.jsonl`
-ile aynı sonucu üretir.
+Yalnızca komutu istiyorsanız (örnek veri gelmez, `indir` ile başlarsınız):
 
 ```bash
+uv tool install git+https://github.com/Furkiozknn/mcp-census
+mcp-census --version
+```
+
+PyPI'da henüz yayında değil; yayın iş akışı hazır ([`yayinla.yml`](.github/workflows/yayinla.yml)).
+
+## Komutlar
+
+Ağa çıkan tek komut `indir`. Diğerleri yalnızca diskteki dosyaları okur — bu
+yüzden bir sayıya itiraz eden kişi aynı `kayitlar.jsonl` ile aynı sonucu
+üretir. Bütün komutlar `--veri KLASÖR` ile çalışır (varsayılan: `veri`).
+
+| Komut | Ne yapar | Okur → yazar |
+|---|---|---|
+| `indir` | Registry'yi sayfa sayfa çeker | ağ → `kayitlar.jsonl`, `manifest.json` |
+| `say` | Sayımı üretir | `kayitlar.jsonl` (+ `manifest.json`) → `sayim.json` |
+| `rapor` | Okunur metin (`--json`, `--yaz DOSYA`) | `sayim.json` → stdout |
+| `karsilastir ESKI YENI` | İki indirmeyi sunucu adı düzeyinde karşılaştırır (`--json`) | iki `.jsonl` → stdout |
+| `seri` | Tam bir sayımı zaman serisine ekler (`--onceki SAYIM`, `--ozet DOSYA`) | `sayim.json` → `zaman-serisi.csv` |
+
+```bash
+uv run mcp-census indir                        # tamamı: ~15 dk, ~1050 sayfa
+uv run mcp-census indir --surum latest         # sunucu başına tek satır -> kayitlar-latest.jsonl (~5 dk)
+uv run mcp-census indir --azami-sayfa 5        # hızlı deneme (künyede tam_mi: false)
 uv run mcp-census rapor --json                 # makine okunur
-uv run mcp-census rapor --yaz RAPOR.txt        # dosyaya da yaz
-uv run mcp-census indir --azami-sayfa 5        # hızlı deneme (sayım TAM DEĞİL işaretlenir)
-uv run mcp-census indir --surum latest         # sunucu başına tek satır -> veri/kayitlar-latest.jsonl
-uv run mcp-census karsilastir eski.jsonl yeni.jsonl
+uv run mcp-census karsilastir veri/kayitlar.jsonl veri/kayitlar-latest.jsonl
+uv run mcp-census seri --onceki eski-sayim.json
 ```
 
-Denemek için önce indirmeye gerek yok — depoda 500 kayıtlık örnek var:
+`indir` seçenekleri: `--taban URL` (yalnızca `http(s)`), `--sayfa-boyu N`,
+`--azami-sayfa N`, `--surum SUZGEC` (dosya adına girdiği için yalnızca harf,
+rakam, `.`, `_`, `+`, `-`), `--sessiz`.
 
-```bash
-uv run mcp-census --veri veri/ornek say
-uv run mcp-census --veri veri/ornek rapor
-```
+### Çıkış kodları ve hatalar
+
+| Kod | Anlamı |
+|---:|---|
+| 0 | Başarılı |
+| 1 | `karsilastir`: yeni indirmede **kaybolan** sunucu var (eksik indirme ya da registry silmiş) |
+| 2 | Kullanım, ağ ya da dosya hatası — stderr'de tek satır `hata: …` |
+
+| Gördüğünüz | Sebep ve çözüm |
+|---|---|
+| ``hata: veri/kayitlar.jsonl yok. Önce `mcp-census indir`.`` | Ham veri yok. Ya `indir`, ya `--veri veri/ornek`. |
+| ``hata: veri/sayim.json yok. Önce `mcp-census say`.`` | `rapor` / `seri` sayımı okur; önce `say`. |
+| `hata: …/kayitlar.jsonl:17 okunamadı: …` | O satır bozuk JSON; dosya yarım kalmış olabilir, yeniden `indir`. |
+| `hata: … -> 3 denemede alınamadı: …` | Ağ ya da registry erişilemiyor (5xx ve kopmalar 3 kez denenir, 4xx denenmez). |
+| `hata: kısmi indirme (manifest: tam_mi != true); seriye eklenmez` | `--azami-sayfa` ile indirilmiş veri; seri yalnızca tam sayım alır. |
+| Raporun başında `DİKKAT bu veri kümesi kısmi` | Aynı sebep: sayılar tüm registry'yi temsil etmiyor. |
 
 ## Tasarım
 
@@ -190,30 +277,40 @@ indirme aynı veriyi görmüştür. "Hangi anlık görüntüye bakıyoruz" sorus
 cevabı budur.
 
 **Kısmi indirme tam sayım gibi görünmez.** `--azami-sayfa` kullanıldığında
-künyeye `tam_mi: false` yazılır, rapor bunu başlıkta uyarı olarak basar ve
-komut stderr'e uyarı verir.
+künyeye `tam_mi: false` yazılır, rapor bunu başlıkta uyarı olarak basar,
+komut stderr'e uyarı verir ve `seri` onu reddeder.
+
+**Registry yanıtı güvenilmeyen veridir.** Yalnızca JSON olarak ayrıştırılır;
+nesne olmayan satır diske yazılmadan reddedilir, bir sayfa (açılmış hâliyle)
+32 MiB'ı aşarsa okunmaz. Ayrıntı: [SECURITY.md](SECURITY.md).
 
 **Bağımlılık yok.** Bir ölçüm aracının kurulumunun kendisi bir tedarik
 zinciri sorusu haline gelmemeli. Yalnızca standart kütüphane.
 
 ```
 mcp_census/
-  fetch.py     sayfalama, yeniden deneme, künye, JSONL okuma/yazma
-  analyze.py   sayım, dağılımlar, iki indirmenin karşılaştırması
-  cli.py       indir / say / rapor / karsilastir
+  fetch.py     sayfalama, yeniden deneme, yanıt sınırı, künye, JSONL okuma/yazma
+  analyze.py   sayım, dağılımlar, iki indirmenin karşılaştırması, zaman serisi
+  cli.py       indir / say / rapor / karsilastir / seri
 ```
 
 ## Testler
 
 ```bash
-uv run pytest        # 55 test
+uv run pytest        # 104 test, 1 saniyenin altında, hiçbiri ağa çıkmaz
 ```
 
-Hiçbiri ağa çıkmaz: `fetch` fonksiyonları test edilebilir bir `getirici`
-alıyor, CLI testleri `_istek`'i yamalar. Testlerin koruduğu şeyler arasında
-şunlar var: 4xx yeniden denenmez ama 5xx denenir, tekrar eden imleç sonsuz
-döngüyü keser, sürüm satırları dağılımları şişirmez, ve **hiçbir bulgu
-paydasından büyük olamaz** (koruma yasası).
+`fetch` fonksiyonları test edilebilir bir `getirici` alıyor, CLI testleri
+`_istek`'i yamalar. Testlerin koruduğu şeyler arasında: 4xx yeniden denenmez
+ama 5xx denenir, tekrar eden imleç sonsuz döngüyü keser, sürüm satırları
+dağılımları şişirmez, **hiçbir bulgu paydasından büyük olamaz** (koruma
+yasası), kısmi sayım seriye girmez, `--surum` veri klasörünün dışına
+yazdıramaz, gzip bombası belleği dolduramaz ve bozuk girdi yığın izi değil
+`hata: …` verir.
+
+CI her push'ta Python 3.11, 3.12, 3.13 ve 3.14'te testleri koşar, paketi
+derleyip `twine check --strict` ile denetler ve tekerleği boş bir ortama
+kurup çağırır.
 
 ## Bilinen sınırlar
 
@@ -229,37 +326,16 @@ paydasından büyük olamaz** (koruma yasası).
 - **`isLatest` yoksa varsayım yapılır.** Sürüm işaretlenmemişse o adın en son
   görülen satırı alınır. Ölçülen veride bütün adlarda `isLatest` vardı
   (32.318 ad, 32.318 işaretli satır) ama kod bu varsayımı yine de taşıyor.
+- **Tam indirme uzun sürer** (~15 dk, 1051 sayfa). Registry tarafında
+  toplu dışa aktarma yok; sayfalama tek yol.
 
-## Lisans
+## Katkı ve güvenlik
 
-MIT.
-
----
-
-## Aynı soru, aylar sonra
-
-Tek bir sayım bir fotoğraftır. `veri/sayim.json` 16 Eylül 2026'da ölçüldü ve o
-günden sonra registry'nin nereye gittiğini söylemiyor — oysa bir sayım aracının
-asıl değeri orada: "kaç sunucunun okunacak kodu yok" sorusunun cevabı artıyor
-mu, azalıyor mu?
-
-`Sayim` iş akışı ayda bir kez indiriyor, sayıyor, önceki sayımla ölçüt ölçüt
-karşılaştırıyor ve [`veri/zaman-serisi.csv`](veri/zaman-serisi.csv) dosyasına bir
-satır ekliyor. Sayılar oynamadıysa hiçbir şey commit etmiyor.
-
-Ham kayıtlar depoda durmuyor ve durmayacak: 105 bin satır, her ay yeniden.
-Duran şey hesaplanmış sayım, onu üreten manifest ve serinin o ayki satırı —
-üçü birlikte, ham veriye erişimi olmayan birinin de seriyi okuyabilmesi için
-yeterli.
-
-```bash
-mcp-census karsilastir veri/ornek/kayitlar.jsonl yeni.jsonl   # iki indirme
-```
-
-Ölçülmeyen bir ölçüt seride **boş** kalıyor, sıfıra çevrilmiyor: "o gün
-ölçülmedi" ile "o gün sıfırdı" aynı şey değil, ve bir zaman serisinde bu fark
-her şeydir. Sütun sırası sabit ve bir testle kilitli; bir CSV'nin sütun sırası
-değişirse eski satırlar okunamaz hâle gelir.
+[CONTRIBUTING.md](CONTRIBUTING.md) — geliştirme ortamı ve bu depoya özgü
+kurallar (çalışma zamanı bağımlılığı yok, her sayı tanımını taşır, seri
+sütunları değişmez). Bir sayıya itirazınız varsa "Bir sayıya itiraz" issue
+şablonunu kullanın. Güvenlik açıkları: [SECURITY.md](SECURITY.md).
+Sürüm geçmişi: [CHANGELOG.md](CHANGELOG.md).
 
 ## Bu ekosistemden başka projeler
 
@@ -267,3 +343,7 @@ değişirse eski satırlar okunamaz hâle gelir.
 - **[mcp-vet](https://github.com/Furkiozknn/mcp-vet)** — bir MCP sunucusunun kaynağını kurmadan önce denetler
 
 <sub>Hepsi tek bir aranabilir sayfada: **[furkiozknn.github.io](https://furkiozknn.github.io/)** — her kart, o deponun kendi <code>project-meta.json</code> dosyasından üretiliyor.</sub>
+
+## Lisans
+
+MIT — [LICENSE](LICENSE).
