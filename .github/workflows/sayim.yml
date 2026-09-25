@@ -21,8 +21,9 @@ on:
   workflow_dispatch:
     inputs:
       azami_sayfa:
-        description: "kac sayfa indirilsin (bos = hepsi; deneme icin 5 yazin)"
+        description: "kac sayfa indirilsin (bos = hepsi; deneme icin 5 yazin -- deneme commit etmez)"
         required: false
+        type: string
 
 permissions:
   contents: write
@@ -40,70 +41,81 @@ jobs:
       - uses: astral-sh/setup-uv@v7
       - run: uv sync --group dev
 
+      # Girdi kabuga metin olarak GOMULMUYOR: `${{ }}` bir `run:` betiginin
+      # icine yapistirilirsa, tetikleyenin yazdigi deger komut olarak calisir.
+      # Deger ortam degiskeninden okunuyor ve once tamsayi mi diye bakiliyor.
       - name: Registry'yi indir
+        id: indir
+        env:
+          AZAMI_SAYFA: ${{ inputs.azami_sayfa }}
         run: |
           set -euo pipefail
-          ek=""
-          if [ -n "${{ github.event.inputs.azami_sayfa }}" ]; then
-            ek="--azami-sayfa ${{ github.event.inputs.azami_sayfa }}"
+          if [ -z "${AZAMI_SAYFA:-}" ]; then
+            uv run mcp-census --veri veri indir --sessiz
+            echo "tam=true" >> "$GITHUB_OUTPUT"
+          else
+            case "$AZAMI_SAYFA" in
+              ''|*[!0-9]*) echo "azami_sayfa pozitif bir tamsayi olmali: '$AZAMI_SAYFA'" >&2; exit 2 ;;
+            esac
+            uv run mcp-census --veri veri indir --sessiz --azami-sayfa "$AZAMI_SAYFA"
+            echo "tam=false" >> "$GITHUB_OUTPUT"
           fi
-          # shellcheck disable=SC2086
-          uv run mcp-census --veri veri indir --sessiz $ek
+
+      # Karsilastirma ONCEKI sayim ile yapiliyor: ham kayitlar depoda
+      # olmadigi icin sunucu adi duzeyinde degil, olcut duzeyinde.
+      - name: Onceki sayimi ayir
+        run: cp veri/sayim.json "$RUNNER_TEMP/onceki-sayim.json"
 
       - name: Sayimi uret
         run: uv run mcp-census --veri veri say
 
-      # Karsilastirma ONCEKI sayim ile yapiliyor: ham kayitlar depoda
-      # olmadigi icin sunucu adi duzeyinde degil, olcut duzeyinde.
+      # Kismi bir deneme (azami_sayfa) seriye ve depoya GIRMEZ: 500 satirlik
+      # bir sayim seride registry'nin bir ayda %99 kuculdugu gibi gorunurdu.
+      # `mcp-census seri` kismi sayimi kendisi de reddediyor (cikis 2); bu
+      # kosul ikinci kemer.
       - name: Onceki sayimla karsilastir ve seriye ekle
-        id: fark
+        if: steps.indir.outputs.tam == 'true'
+        run: >-
+          uv run mcp-census --veri veri seri
+          --onceki "$RUNNER_TEMP/onceki-sayim.json"
+          --ozet "$GITHUB_STEP_SUMMARY"
+
+      - name: Deneme kosusu -- commit yok
+        if: steps.indir.outputs.tam != 'true'
         run: |
           set -euo pipefail
-          python3 - <<'PY'
-          import json, os, subprocess
-          from pathlib import Path
-          from mcp_census import analyze
-
-          yeni = json.loads(Path("veri/sayim.json").read_text(encoding="utf-8"))
-          onceki_ham = subprocess.run(
-              ["git", "show", "HEAD:veri/sayim.json"],
-              capture_output=True, text=True)
-          eski = json.loads(onceki_ham.stdout) if onceki_ham.returncode == 0 else {}
-
-          fark = analyze.sayim_farki(eski, yeni) if eski else {"degisti_mi": True, "olcutler": []}
-          eklendi = analyze.seriye_ekle(Path("veri/zaman-serisi.csv"), analyze.seri_satiri(yeni))
-
-          satirlar = ["### Sayim", ""]
-          km = yeni.get("kaynak_manifest") or {}
-          satirlar.append("Indirme: `%s`, %s satir, %s sayfa."
-                          % (km.get("indirme_zamani_utc"), km.get("kayit_sayisi"), km.get("sayfa_sayisi")))
-          satirlar.append("")
-          if fark.get("olcutler"):
-              satirlar += ["| olcut | onceki | simdiki | fark |", "| --- | ---: | ---: | ---: |"]
-              for o in fark["olcutler"]:
-                  isaret = "+" if o["fark"] > 0 else ""
-                  satirlar.append("| `%s` | %s | %s | %s%s |"
-                                  % (o["ad"], o["onceki"], o["simdiki"], isaret, o["fark"]))
-          for anahtar, baslik in (("yeni_olcutler", "Yeni olcut"), ("dusen_olcutler", "Dusen olcut")):
-              if fark.get(anahtar):
-                  satirlar.append("")
-                  satirlar.append("%s: %s" % (baslik, ", ".join("`%s`" % x for x in fark[anahtar])))
-          satirlar.append("")
-          satirlar.append("Seriye satir eklendi: **%s**" % ("evet" if eklendi else "hayir, ayni damga zaten var"))
-          Path(os.environ["GITHUB_STEP_SUMMARY"]).write_text("\n".join(satirlar) + "\n", encoding="utf-8")
-          PY
+          {
+            echo "### Deneme kosusu (kismi indirme)"
+            echo
+            echo "Bu kosu depoya ve zaman serisine hicbir sey yazmadi."
+            echo
+            echo '```'
+            uv run mcp-census --veri veri rapor
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
 
       # Ham kayitlar commit EDILMIYOR: 105 bin satir, her ay yeniden.
-      # Duran sey hesaplanmis sayim, manifest ve serinin bir satiri.
-      - name: Degisen bir sey varsa commit et
+      # Duran sey hesaplanmis sayim, manifest ve serinin bir satiri. Yeni
+      # indirmenin zaman damgasi hep yeni oldugu icin tam bir kosu her ay
+      # bir commit uretir -- sayilar oynamasa bile, "bu ay da olculdu ve
+      # ayniydi" bilgisi serinin kendisidir.
+      - name: Commit et
+        if: steps.indir.outputs.tam == 'true'
         run: |
-          set -eu
-          git add veri/sayim.json veri/manifest*.json veri/zaman-serisi.csv 2>/dev/null || true
+          set -euo pipefail
+          git add veri/sayim.json veri/manifest.json veri/zaman-serisi.csv
           if git diff --cached --quiet; then
-            echo "sayilar oynamadi; commit yok"
+            echo "degisen dosya yok; commit yok"
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "chore: aylik sayim"
-          git push
+          # Indirme ~15 dk suruyor; bu arada dala baska bir commit gelmis
+          # olabilir. Ustune al ve tekrar dene, zorla itme yok.
+          for _ in 1 2 3; do
+            if git push; then exit 0; fi
+            git pull --rebase
+          done
+          echo "push 3 denemede basarisiz" >&2
+          exit 1

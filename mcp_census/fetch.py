@@ -37,6 +37,12 @@ KULLANICI_AJANI = "mcp-census (+https://github.com/Furkiozknn/mcp-census)"
 DENEME = 3
 DENEME_BEKLEME = 1.5
 
+# Tek bir sayfa yanıtının (açılmış hâliyle) üst sınırı. Gerçek bir registry
+# sayfası 100 kayıtla birkaç yüz KB; bu tavan ondan iki kat büyüklük
+# mertebesi yukarıda. Amacı `--taban` başka bir sunucuyu gösterdiğinde ya da
+# yanıt bir gzip bombası olduğunda belleğin sınırsız dolmasını önlemek.
+AZAMI_YANIT_BAYT = 32 * 1024 * 1024
+
 
 class RegistryHatasi(RuntimeError):
     """Registry'den beklenen şekilde veri alınamadı."""
@@ -68,10 +74,36 @@ def _istek(url: str, zaman_asimi: float) -> bytes:
         },
     )
     with urllib.request.urlopen(istek, timeout=zaman_asimi) as yanit:
-        ham = yanit.read()
+        ham = _sinirli_oku(yanit)
         if yanit.headers.get("Content-Encoding") == "gzip":
-            ham = gzip.decompress(ham)
+            with gzip.GzipFile(fileobj=io.BytesIO(ham)) as acik:
+                ham = _sinirli_oku(acik)
         return ham
+
+
+def _sinirli_oku(akim, sinir: int | None = None) -> bytes:
+    """En fazla `sinir` bayt okur; aşılırsa yarım veriyle devam etmez, yükselir."""
+    sinir = AZAMI_YANIT_BAYT if sinir is None else sinir
+    ham = akim.read(sinir + 1)
+    if len(ham) > sinir:
+        raise RegistryHatasi(f"yanıt {sinir} baytı aşıyor; okunmadı")
+    return ham
+
+
+def taban_dogrula(taban: str) -> str:
+    """Registry tabanı yalnızca http(s) olabilir.
+
+    `urllib` `file://` ve `ftp://` adreslerini de açar. `--taban` bir
+    registry adresi içindir; yerel bir dosyayı "registry yanıtı" diye okuyup
+    `kayitlar.jsonl` içine yazmanın meşru bir kullanımı yok.
+    """
+    parca = urllib.parse.urlsplit(taban)
+    if parca.scheme not in ("http", "https") or not parca.netloc:
+        raise RegistryHatasi(
+            f"geçersiz registry tabanı {taban!r}: http:// ya da https:// ile "
+            "başlayan bir adres olmalı"
+        )
+    return taban.rstrip("/")
 
 
 def sayfa_getir(
@@ -95,6 +127,9 @@ def sayfa_getir(
     hakkında dolaşan "N sunucu var" cümlesinin neden yanıltıcı olduğudur.
     """
     al = getirici or _istek
+    taban = taban_dogrula(taban)
+    if int(limit) < 1:
+        raise RegistryHatasi(f"sayfa boyu en az 1 olmalı (verilen: {limit})")
     url = f"{taban}/v0/servers?limit={int(limit)}"
     for anahtar, deger in sorted((suzgec or {}).items()):
         url += f"&{urllib.parse.quote(anahtar)}={urllib.parse.quote(str(deger))}"
@@ -124,12 +159,21 @@ def sayfa_getir(
     except (UnicodeDecodeError, json.JSONDecodeError) as e:
         raise RegistryHatasi(f"{url} -> yanıt JSON değil: {e}") from e
 
+    if not isinstance(govde, dict):
+        raise RegistryHatasi(f"{url} -> yanıt bir JSON nesnesi değil")
     kayitlar = govde.get("servers")
     if not isinstance(kayitlar, list):
         raise RegistryHatasi(f"{url} -> yanıtta 'servers' listesi yok")
+    # Analiz her satırı bir nesne olarak okur. Nesne olmayan bir satırı
+    # diske yazmak, hatayı bir sonraki adıma (`say`) ertelemek olur.
+    for i, kayit in enumerate(kayitlar):
+        if not isinstance(kayit, dict):
+            raise RegistryHatasi(f"{url} -> 'servers'[{i}] bir JSON nesnesi değil")
 
-    ustveri = govde.get("metadata") or {}
-    return Sayfa(kayitlar=kayitlar, sonraki_imlec=ustveri.get("nextCursor") or None)
+    ustveri = govde.get("metadata")
+    ustveri = ustveri if isinstance(ustveri, dict) else {}
+    imlec = ustveri.get("nextCursor")
+    return Sayfa(kayitlar=kayitlar, sonraki_imlec=str(imlec) if imlec else None)
 
 
 def sayfalar(
@@ -241,9 +285,15 @@ def jsonl_oku(yol: Path) -> list[dict]:
             if not satir:
                 continue
             try:
-                kayitlar.append(json.loads(satir))
+                kayit = json.loads(satir)
             except json.JSONDecodeError as e:
                 raise RegistryHatasi(f"{yol}:{satir_no} okunamadı: {e}") from e
+            if not isinstance(kayit, dict):
+                raise RegistryHatasi(
+                    f"{yol}:{satir_no} bir JSON nesnesi değil "
+                    f"({type(kayit).__name__}); her satır bir registry kaydı olmalı"
+                )
+            kayitlar.append(kayit)
     return kayitlar
 
 
