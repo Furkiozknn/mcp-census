@@ -1,5 +1,8 @@
 ![mcp-census — resmî MCP Registry'nin yeniden üretilebilir sayımı: aynı uca sorulan aynı soru 105.038 satır, 32.318 ayrı sunucu ve 31.972 yayında cevabını veriyor](assets/banner.svg)
 
+<p align="center"><img src="docs/reel/reel.gif" alt="mcp-census - 15 saniyelik tanıtım videosu" width="720"></p>
+<p align="center"><sub><a href="docs/reel/reel.mp4">Sesli MP4 sürümü</a></sub></p>
+
 <div align="center">
 
 [![CI](https://github.com/Furkiozknn/mcp-census/actions/workflows/ci.yml/badge.svg)](https://github.com/Furkiozknn/mcp-census/actions/workflows/ci.yml)
