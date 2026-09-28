@@ -22,6 +22,10 @@ from typing import Any, Iterable
 RESMI_META = "io.modelcontextprotocol.registry/official"
 
 
+class SayimHatasi(ValueError):
+    """Bir sayım dosyası okunamadı ya da beklenen şekilde değil."""
+
+
 @dataclass(frozen=True)
 class Bulgu:
     """Tek bir ölçüm: değeri, tanımı ve payda."""
@@ -209,6 +213,36 @@ def sayim(kayitlar: list[dict]) -> dict[str, Any]:
     }
 
 
+def sayim_oku(yol: Path) -> dict[str, Any]:
+    """`sayim.json` dosyasını okur ve şeklini doğrular.
+
+    `rapor` ve `seri` bu dosyanın içine körlemesine bakıyor. Elle düzenlenmiş
+    ya da yarım kalmış bir dosya bir `KeyError` yığını yerine hangi alanın
+    eksik olduğunu söyleyen tek satırlık bir hata vermeli.
+    """
+    yol = Path(yol)
+    try:
+        s = json.loads(yol.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as e:
+        raise SayimHatasi(f"{yol} geçerli JSON değil: {e}") from e
+    if not isinstance(s, dict):
+        raise SayimHatasi(f"{yol} bir JSON nesnesi değil")
+    bulgular = s.get("bulgular")
+    if not isinstance(bulgular, list) or not all(
+        isinstance(b, dict) and {"ad", "deger", "tanim"} <= set(b) for b in bulgular
+    ):
+        raise SayimHatasi(
+            f"{yol} bir sayım dosyası değil: 'bulgular' listesi yok ya da "
+            "öğelerinde ad/deger/tanim eksik"
+        )
+    for anahtar, tur in (("dagilimlar", dict), ("en_cok_surum_yayinlayan", list)):
+        if not isinstance(s.get(anahtar, tur()), tur):
+            raise SayimHatasi(f"{yol}: '{anahtar}' beklenen türde değil")
+    if not all(isinstance(d, dict) for d in (s.get("dagilimlar") or {}).values()):
+        raise SayimHatasi(f"{yol}: 'dagilimlar' altındaki her dağılım bir nesne olmalı")
+    return s
+
+
 def sayimi_yaz(sonuc: dict, yol: Path) -> None:
     yol.parent.mkdir(parents=True, exist_ok=True)
     with open(yol, "w", encoding="utf-8", newline="\n") as f:
@@ -276,7 +310,8 @@ def sayim_farki(eski: dict, yeni: dict) -> dict[str, Any]:
     degisenler = []
     for ad in ortak:
         onceki, simdiki = e[ad].get("deger"), y[ad].get("deger")
-        if onceki is None or simdiki is None:
+        if not all(isinstance(x, (int, float)) and not isinstance(x, bool)
+                   for x in (onceki, simdiki)):
             continue
         fark = simdiki - onceki
         degisenler.append({
@@ -329,6 +364,46 @@ def seri_satiri(sayim_sonucu: dict) -> dict[str, Any]:
     for ad in SERI_SUTUNLARI[1:]:
         satir[ad] = bulgular.get(ad, "")
     return satir
+
+
+def seriye_uygun_mu(sayim_sonucu: dict) -> tuple[bool, str]:
+    """Bu sayım zaman serisine girebilir mi? (evet/hayır, neden)
+
+    Seriye yalnızca **tam** bir indirmeden üretilmiş sayım girer. Kısmi bir
+    indirme (`--azami-sayfa`) 500 satırlık bir sayım üretir; seriye girerse
+    grafikte registry'nin bir ayda %99 küçüldüğü görünür. Künyesi olmayan bir
+    sayımın tam olup olmadığı bilinemez, o da girmez.
+    """
+    km = sayim_sonucu.get("kaynak_manifest")
+    if not isinstance(km, dict):
+        return False, "sayımda kaynak_manifest yok; tam bir indirmeden geldiği bilinemiyor"
+    if km.get("tam_mi") is not True:
+        return False, "kısmi indirme (manifest: tam_mi != true); seriye eklenmez"
+    if not km.get("indirme_zamani_utc"):
+        return False, "manifestte indirme_zamani_utc yok"
+    return True, ""
+
+
+def seri_ozeti(fark: dict[str, Any], yeni: dict, eklendi: bool) -> str:
+    """Bir aylık sayımın Markdown özeti (iş akışı özeti için)."""
+    km = yeni.get("kaynak_manifest") or {}
+    satirlar = ["### Sayim", ""]
+    satirlar.append("Indirme: `%s`, %s satir, %s sayfa."
+                    % (km.get("indirme_zamani_utc"), km.get("kayit_sayisi"), km.get("sayfa_sayisi")))
+    satirlar.append("")
+    if fark.get("olcutler"):
+        satirlar += ["| olcut | onceki | simdiki | fark |", "| --- | ---: | ---: | ---: |"]
+        for o in fark["olcutler"]:
+            isaret = "+" if o["fark"] > 0 else ""
+            satirlar.append("| `%s` | %s | %s | %s%s |"
+                            % (o["ad"], o["onceki"], o["simdiki"], isaret, o["fark"]))
+    for anahtar, baslik in (("yeni_olcutler", "Yeni olcut"), ("dusen_olcutler", "Dusen olcut")):
+        if fark.get(anahtar):
+            satirlar.append("")
+            satirlar.append("%s: %s" % (baslik, ", ".join("`%s`" % x for x in fark[anahtar])))
+    satirlar.append("")
+    satirlar.append("Seriye satir eklendi: **%s**" % ("evet" if eklendi else "hayir, ayni damga zaten var"))
+    return "\n".join(satirlar) + "\n"
 
 
 def seriye_ekle(yol: Path, satir: dict[str, Any]) -> bool:
