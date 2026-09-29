@@ -381,6 +381,13 @@ def seriye_uygun_mu(sayim_sonucu: dict) -> tuple[bool, str]:
         return False, "kısmi indirme (manifest: tam_mi != true); seriye eklenmez"
     if not km.get("indirme_zamani_utc"):
         return False, "manifestte indirme_zamani_utc yok"
+    if km.get("suzgec"):
+        # `--surum latest` sunucu başına tek satır getirir: kayit_satiri sunucu
+        # sayısına eşitlenir, tek_surumlu_sunucu %100 çıkar. Aynı seriye girse
+        # ay ay karşılaştırılamayan iki tür satır karışırdı.
+        return False, ("süzgeçli indirme (manifest: suzgec=%s); sürüm sayısına bağlı "
+                       "ölçütler bundan anlamlı çıkmaz, seriye eklenmez"
+                       % ",".join("%s=%s" % kv for kv in sorted(km["suzgec"].items())))
     return True, ""
 
 
