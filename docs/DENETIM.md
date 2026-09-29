@@ -68,7 +68,7 @@ Sayılar: "104 test" → koşudan 104 (uyuştu). README'deki her sayı (105.038,
 
 ## Testler ve CI
 
-Önce: 104 test, hepsi geçti (Python 3.14 ve 3.12'de). CI: `ci.yml` (3.11–3.14 matrisi, paket, örnek yol), `sayim.yml` (aylık), `yayinla.yml`; `master`'daki son koşular yeşil. Sonra: 148 test; yerelde 3.11, 3.12, 3.13 ve 3.14'te geçti; CI durumu için bkz. PR.
+Önce: 104 test, hepsi geçti (Python 3.14 ve 3.12'de). CI: `ci.yml` (3.11–3.14 matrisi, paket, örnek yol), `sayim.yml` (aylık), `yayinla.yml`; `master`'daki son koşular yeşil. Sonra: 148 test; yerelde 3.11, 3.12, 3.13 ve 3.14'te geçti; PR #4'te 3.11–3.14 ve paket işleri yeşil (CI logu: `148 passed`). Dal sürümüyle kurulum süreleri aynı aralıkta: `uvx` boş önbellek 9,1–10,1 s, sıcak 2,2 s, `pip` 18,3 s, klon + ilk rapor 5,3 s (`kanit/mcp-census/sonra/kurulum.txt`).
 
 ## Günlük "Ekosistem denetimi" (#19, profil deposu)
 

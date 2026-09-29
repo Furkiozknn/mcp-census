@@ -48,7 +48,7 @@
   },
   "tests": {
     "count": 148,
-    "source": "yerel kosu: `uv run pytest` 148 passed",
+    "source": "CI log: `148 passed`",
     "measured": "2026-09-30"
   },
   "ci": {
