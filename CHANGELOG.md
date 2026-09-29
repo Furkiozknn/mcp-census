@@ -4,6 +4,40 @@ Biçim Keep a Changelog, sürümleme Semantic Versioning. Sayım verisindeki
 değişiklikler (aylık `chore: aylik sayim` commit'leri) burada değil,
 [`veri/zaman-serisi.csv`](veri/zaman-serisi.csv) içinde izlenir.
 
+## [Yayınlanmamış]
+
+### Değişti
+
+- **Hata mesajları Türkçe ve bir sonraki adımı söylüyor.** Kullanım hataları
+  (`eksik argüman`, `bilinmeyen komut`, `tanınmayan argüman`) artık argparse'in
+  İngilizce iskeleti yerine `hata: …` + `yardım: …` basıyor (çıkış kodu hâlâ 2).
+  Depo dışında `rapor`/`say` ve ağ hatası, kullanıcıyı `--veri veri/ornek` ya da
+  `indir` yoluna yönlendiriyor.
+- `--help`: hızlı başlangıç örnekleri, her komutta örnek, `karsilastir`
+  argümanlarının açıklaması.
+- `rapor`: künyede olmayan alan `?` yerine `belirtilmemiş` yazıyor.
+
+### Eklendi
+
+- `--veri KLASÖR` komuttan sonra da yazılabiliyor (`mcp-census rapor --veri veri/ornek`);
+  önceden `tanınmayan argüman` hatası veriyordu.
+- `rapor`, `--surum latest` ile indirilmiş (süzgeçli) veri için sürüm
+  ölçütlerinin anlamsız olduğunu uyarıyor.
+- `.gitattributes`: `veri/` altı LF (Windows'ta `core.autocrlf=true` iken `say`
+  çıktısı `git status`i kirletiyordu).
+- `scripts/demo-uret.py`, `scripts/demo-kayit.js`, `docs/demo/`: README demosu
+  gerçek komut çıktısından üretiliyor. Üreticisi olmayan `docs/reel/` ve
+  `assets/demo.gif` çıkarıldı (git geçmişinde duruyor).
+- 44 test (`tests/test_ilk_kullanim.py`): mesajlar, `--veri` konumu, README'deki
+  her komutun ayrıştırılması, elle çizilmiş SVG'nin sayımla tutarlılığı.
+
+### Düzeltildi
+
+- **Süzgeçli indirme zaman serisine girebiliyordu.** `indir --surum latest`
+  `tam_mi: true` künyesi yazdığı için `seri` kabul ederdi; `kayit_satiri` ve
+  `tek_surumlu_sunucu` sürüm satırı taşımayan veride anlamsızlaşır. `seri` artık
+  künyesinde `suzgec` olan sayımı reddediyor.
+
 ## [0.2.0] — 2026-09-25
 
 ### Eklendi

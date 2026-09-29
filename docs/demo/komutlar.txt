@@ -1,0 +1,44 @@
+# mcp-census terminal demosu: gercek komutlar, gercek cikti
+# tarih: 2026-09-30T01:28:49+03:00
+# surum: 0.2.0 (pip install . ile kuruldu, PATH'teki mcp-census)
+# klon: deponun yerel klonu @ d1a0a83 2026-09-30; veri/sayim.json 16 Eylul 2026 sayimi
+# her komut bash -c 'set -o pipefail; ...' ile klonda kosuldu; hicbir satir elle yazilmadi
+
+$ mcp-census --version
+mcp-census 0.2.0
+[cikis kodu 0] (0.77 s)
+
+$ mcp-census rapor | head -n 17
+MCP REGISTRY SAYIMI
+========================================================
+kaynak     https://registry.modelcontextprotocol.io
+zaman      2026-09-16T04:08:56Z
+özet       c36cf8e700eab15772714d198e5ff172…
+
+SAYILAR
+  kayit_satiri                 105.038
+  ayri_sunucu_adi               32.318   %30.8
+  en_son_surumler               32.318
+  isLatest_isaretli_satir       32.318   %30.8
+  aktif_sunucu                  31.972   %98.9
+  deposuz_sunucu                 7.439   %23.0
+  sadece_uzak_sunucu            18.183   %56.3
+  ne_paket_ne_uc                   425   %1.3
+  kisa_aciklama                    286   %0.9
+  tek_surumlu_sunucu            20.244   %62.6
+[cikis kodu 0] (0.88 s)
+
+$ mcp-census --veri veri/ornek say
+sayım yazıldı -> veri\ornek\sayim.json
+[cikis kodu 0] (0.90 s)
+
+$ git diff --exit-code veri/ornek/sayim.json; echo "git diff cikis kodu: $?"
+git diff cikis kodu: 0
+[cikis kodu 0] (0.23 s)
+
+$ mcp-census --veri yok rapor
+hata: yok\sayim.json yok. Önce `mcp-census say`.
+      'yok' klasörü yok; komutu depo kökünde mi çalıştırdınız?
+      Örnek veriyle: `mcp-census --veri veri/ornek rapor`
+      Kendi sayımınız: `mcp-census indir`, sonra `say`.
+[cikis kodu 2] (0.62 s)

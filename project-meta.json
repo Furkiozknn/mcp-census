@@ -40,14 +40,16 @@
     "hero": "assets/banner.svg",
     "screenshots": [],
     "gifs": [
-      "assets/demo.gif"
+      "docs/demo/demo.gif"
     ],
-    "videos": []
+    "videos": [
+      "docs/demo/demo.mp4"
+    ]
   },
   "tests": {
-    "count": 104,
-    "source": "CI log: `104 passed`",
-    "measured": "2026-09-28"
+    "count": 148,
+    "source": "yerel kosu: `uv run pytest` 148 passed",
+    "measured": "2026-09-30"
   },
   "ci": {
     "workflows": [

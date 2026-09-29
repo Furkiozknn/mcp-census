@@ -1,29 +1,33 @@
 ![mcp-census — resmî MCP Registry'nin yeniden üretilebilir sayımı: aynı soru üç yoldan soruluyor ve cevapların neden farklı olduğu ölçülüyor](https://raw.githubusercontent.com/Furkiozknn/mcp-census/master/assets/banner.svg)
 
-<p align="center"><img src="docs/reel/reel.gif" alt="mcp-census - 15 saniyelik tanıtım videosu" width="720"></p>
-<p align="center"><sub><a href="docs/reel/reel.mp4">Sesli MP4 sürümü</a></sub></p>
+**`mcp-census`, resmî MCP Registry'yi sayar ve her sayının yanına tanımını, üreten kodu ve ham veriyi koyar: kaç sunucu var, kaçının okunacak kodu var, kaçı makinenizde hiç çalışmaz.**
+
+```bash
+git clone https://github.com/Furkiozknn/mcp-census && cd mcp-census && uv run mcp-census rapor
+```
+
+<sub>Gereken tek şey [uv](https://pypi.org/project/uv/). Ağ yok: depodaki 16 Eylül 2026 sayımını okur. Boş bir klasörde klon + ilk rapor 5,8 s ölçüldü ([`docs/DENETIM.md`](docs/DENETIM.md)).</sub>
 
 <div align="center">
 
 [![CI](https://github.com/Furkiozknn/mcp-census/actions/workflows/ci.yml/badge.svg)](https://github.com/Furkiozknn/mcp-census/actions/workflows/ci.yml)
-
-### **Resmî MCP Registry'nin yeniden üretilebilir sayımı.**
-
-*Kaç sunucu var, kaçının okunacak kodu var, kaçı sizin makinenizde hiç çalışmıyor.*
-
-![mcp-census raporu: 105.038 kayıt satırı, 32.318 ayrı sunucu adı, 31.972 aktif sunucu ve her satırın ne anlama geldiğinin tanımı](https://raw.githubusercontent.com/Furkiozknn/mcp-census/master/assets/demo.gif)
-
-<sub>Gerçek çıktı, ağ olmadan: <code>veri/</code> klasöründeki indirilmiş anlık görüntüden üretiliyor, bu yüzden aynı komut yarın da aynı sayıları veriyor.</sub>
-
-<br/>
-
 ![lisans](https://img.shields.io/badge/lisans-MIT-3fb950?style=flat-square&labelColor=0b0b0f)
 ![python](https://img.shields.io/badge/python-3.11%E2%80%933.14-3776ab?style=flat-square&labelColor=0b0b0f)
 ![bağımlılık](https://img.shields.io/badge/ba%C4%9F%C4%B1ml%C4%B1l%C4%B1k-0-3fb950?style=flat-square&labelColor=0b0b0f)
-![test](https://img.shields.io/badge/test-104%20ge%C3%A7iyor-6cb6ff?style=flat-square&labelColor=0b0b0f)
+![test](https://img.shields.io/badge/test-148%20ge%C3%A7iyor-6cb6ff?style=flat-square&labelColor=0b0b0f)
 ![ölçülen](https://img.shields.io/badge/%C3%B6l%C3%A7%C3%BClen-32.318%20sunucu-c9a961?style=flat-square&labelColor=0b0b0f)
 
+<img src="docs/demo/demo.gif" alt="Terminal demosu: mcp-census rapor 105.038 kayıt satırı ve 32.318 ayrı sunucu gösteriyor; örnek veriyle say komutu git'te fark bırakmıyor; yanlış klasörde hata bir sonraki komutu söylüyor" width="720">
+
+<sub>Gerçek komutlar, gerçek çıktı: her satır <a href="docs/demo/komutlar.txt">docs/demo/komutlar.txt</a> kaydından oynatılıyor (<code>scripts/demo-uret.py</code>). <a href="docs/demo/demo.mp4">MP4</a></sub>
+
 </div>
+
+| Şunun için kullanın | Şunun için kullanmayın |
+|---|---|
+| Ekosistemde dolaşan bir sayıyı (kaç sunucu, kaçının kodu var) kendi elinizle yeniden üretmek | Bir MCP sunucusunun **güvenli** olup olmadığını öğrenmek: kod okumaz, bu bir sayım aracı. Denetim için [`mcp-vet`](https://github.com/Furkiozknn/mcp-vet) |
+| İki indirme arasında registry'nin ne kadar değiştiğini ölçmek (`karsilastir`) | mcp.so, Smithery, Glama gibi başka kataloglar: yalnızca resmî registry |
+| Bir sayıya itiraz etmek: tanımı, paydası ve ham verisi ortada | Anlık sayı: depodaki sayım **16 Eylül 2026**'dan, güncelini `indir` ile siz alırsınız ([veri tazeliği](#veri-tazeliği)) |
 
 <details>
 <summary><b>In English</b></summary>
@@ -32,7 +36,7 @@
 
 **A reproducible count of the official MCP Registry.** It answers how many servers there are, how many have code you can read, and how many never run on your machine. The raw data, the code that produced each number and the definition of each number are all in this repository, so anyone can re-derive the numbers. The rest of this README is in Turkish.
 
-On 16 September 2026 the whole registry was downloaded:
+On 16 September 2026 the whole registry was downloaded (a separate `--surum latest` download on 29 September counted 37,477 distinct servers, about 16% more; see *Veri tazeliği* below):
 
 | Question | Answer |
 |---|---:|
@@ -65,19 +69,20 @@ Gereken tek şey [uv](https://pypi.org/project/uv/) (Python 3.11+ yoksa uv onu d
 
 ```bash
 git clone https://github.com/Furkiozknn/mcp-census && cd mcp-census
-uv run mcp-census rapor                     # yukarıdaki GIF'teki rapor, ağ yok
+uv run mcp-census rapor                     # yukarıdaki demodaki rapor, ağ yok
 uv run mcp-census --veri veri/ornek say     # örnekten sayımı baştan üret, ağ yok
 uv run mcp-census --veri veri/ornek rapor
 ```
 
 `say` deterministik: ikinci komut depodaki `veri/ornek/sayim.json` dosyasını
-bayt bayt aynı yeniden yazar (`git status` temiz kalır; CI bunu her push'ta
-denetliyor). Registry'nin bugünkü hâline bakmak için ağa çıkan tek komut:
+bayt bayt aynı yeniden yazar (`git diff` boş kalır; CI bunu her push'ta
+denetliyor. Windows'ta `core.autocrlf=true` iken de: `.gitattributes` bu
+dosyaları LF'ye kilitler). Registry'nin bugünkü hâline bakmak için ağa çıkan tek komut:
 
 ```bash
-uv run mcp-census --veri /tmp/deneme indir --azami-sayfa 2   # ~1 sn, 200 satır, "TAM DEĞİL" işaretli
-uv run mcp-census --veri /tmp/deneme say
-uv run mcp-census --veri /tmp/deneme rapor
+uv run mcp-census --veri deneme indir --azami-sayfa 2   # ~3 sn, 200 satır, "TAM DEĞİL" işaretli
+uv run mcp-census --veri deneme say
+uv run mcp-census --veri deneme rapor
 ```
 
 ## Neden
@@ -147,6 +152,28 @@ paket            npm 8.907 · pypi 3.785 · mcpb 1.221 · oci 919 · nuget 116 �
 durum            active 31.972 · deprecated 346
 ```
 
+## Veri tazeliği
+
+Depodaki sayım (`veri/sayim.json`) **16 Eylül 2026**'da alındı; sonrasını yalnızca
+ayın ilk günü çalışan iş akışı ([`sayim.yml`](.github/workflows/sayim.yml)) ekler.
+Registry o günden beri büyüdü. Aynı komutla (`mcp-census indir --surum latest`,
+5 dk 21 sn) **29 Eylül 2026** 22:16 UTC'de alınan ayrı bir indirme:
+
+| Ölçüt | 16 Eylül (tam indirme, depoda) | 29 Eylül (`latest` indirmesi, depoda yok) |
+|---|---:|---:|
+| Ayrı sunucu adı | 32.318 | **37.477** |
+| `repository` alanı yok | 7.439 (%23,0) | 9.062 (%24,2) |
+| Yalnızca uzak uç | 18.183 (%56,3) | 21.301 (%56,8) |
+| Ne paket ne uç | 425 (%1,3) | 455 (%1,2) |
+
+On dört günde sunucu sayısı yaklaşık %16 arttı; oranlar ise yerinde durdu. Bu
+ikinci sütun bu deponun başlık sayısı **değil**: farklı bir indirme yoluyla
+alındı ve ham dosyası depoda durmuyor (künye özeti `d06973cd…`). Kendi
+elinizle yeniden üretmek için `indir --surum latest` çalıştırın; sayı sizin
+koşunuzda bugünün sayısı olur. `latest` dosyası sürüm başına satır içermez, bu
+yüzden `kayit_satiri` ve `tek_surumlu_sunucu` ondan anlamlı çıkmaz: `rapor` bunu
+uyarı olarak basar, `seri` ise böyle bir veriyi seriye almaz.
+
 ## Sayının kendisi hareket ediyor — ve bunu ölçüyoruz
 
 Tam indirme ile `?version=latest` indirmesi arasında 15 dakika vardı. İkisi
@@ -205,16 +232,22 @@ Depoyla birlikte (örnek veri ve sayım dahil) — önerilen yol:
 
 ```bash
 git clone https://github.com/Furkiozknn/mcp-census && cd mcp-census
-uv sync                      # çalışma zamanı bağımlılığı yok; yalnızca paketin kendisi
+uv sync                      # çalışma zamanı bağımlılığı yok (uv, geliştirme grubu olarak pytest'i de kurar)
 uv run mcp-census --help
 ```
 
-Yalnızca komutu istiyorsanız (örnek veri gelmez, `indir` ile başlarsınız):
+Yalnızca komutu istiyorsanız (örnek veri ve hazır sayım gelmez, `indir` ile
+başlarsınız):
 
 ```bash
 uv tool install git+https://github.com/Furkiozknn/mcp-census
 mcp-census --version
 ```
+
+Kurulum süreleri temiz ortamda ölçüldü ([`docs/DENETIM.md`](docs/DENETIM.md)):
+`uvx --from git+…` boş önbellekle 10 s, sıcak önbellekle 2,7 s; `python -m venv`
++ `pip install git+…` 19,6 s. Depo dışında `mcp-census rapor` hazır sayımı bulamaz
+ve bunu söyler (aşağıdaki tablo).
 
 PyPI'da henüz yayında değil; yayın iş akışı hazır ([`yayinla.yml`](.github/workflows/yayinla.yml)).
 
@@ -222,7 +255,8 @@ PyPI'da henüz yayında değil; yayın iş akışı hazır ([`yayinla.yml`](.git
 
 Ağa çıkan tek komut `indir`. Diğerleri yalnızca diskteki dosyaları okur — bu
 yüzden bir sayıya itiraz eden kişi aynı `kayitlar.jsonl` ile aynı sonucu
-üretir. Bütün komutlar `--veri KLASÖR` ile çalışır (varsayılan: `veri`).
+üretir. Bütün komutlar `--veri KLASÖR` alır, komuttan önce de sonra da
+(`mcp-census rapor --veri veri/ornek`); varsayılan: `veri`.
 
 | Komut | Ne yapar | Okur → yazar |
 |---|---|---|
@@ -255,12 +289,14 @@ rakam, `.`, `_`, `+`, `-`), `--sessiz`.
 
 | Gördüğünüz | Sebep ve çözüm |
 |---|---|
-| ``hata: veri/kayitlar.jsonl yok. Önce `mcp-census indir`.`` | Ham veri yok. Ya `indir`, ya `--veri veri/ornek`. |
-| ``hata: veri/sayim.json yok. Önce `mcp-census say`.`` | `rapor` / `seri` sayımı okur; önce `say`. |
+| `hata: veri\sayim.json yok. Önce mcp-census say.` + `'veri' klasörü yok; komutu depo kökünde mi çalıştırdınız?` | Depo dışında çalıştırdınız. Depo kökünde `rapor` hazır sayımı okur; örnek için `--veri veri/ornek`; kendi sayımınız için `indir`, sonra `say`. |
+| `hata: veri/kayitlar.jsonl yok. Önce mcp-census indir (…~15 dk)` | Ham veri yok. `indir`, ya da beklemeden `--veri veri/ornek`. |
 | `hata: …/kayitlar.jsonl:17 okunamadı: …` | O satır bozuk JSON; dosya yarım kalmış olabilir, yeniden `indir`. |
-| `hata: … -> 3 denemede alınamadı: …` | Ağ ya da registry erişilemiyor (5xx ve kopmalar 3 kez denenir, 4xx denenmez). |
+| `hata: … -> 3 denemede alınamadı: …` | Ağ ya da registry erişilemiyor (5xx ve kopmalar 3 kez denenir, 4xx denenmez, ~11 s). Mesaj ağsız çalışan komutları da hatırlatır. |
 | `hata: kısmi indirme (manifest: tam_mi != true); seriye eklenmez` | `--azami-sayfa` ile indirilmiş veri; seri yalnızca tam sayım alır. |
-| Raporun başında `DİKKAT bu veri kümesi kısmi` | Aynı sebep: sayılar tüm registry'yi temsil etmiyor. |
+| `hata: süzgeçli indirme (manifest: suzgec=version=latest); …` | `indir --surum latest` verisi sürüm sayısını ölçmez; seriye girmez. |
+| Raporun başında `DİKKAT bu veri kümesi kısmi` / `veri süzgeçle indirildi` | Aynı sebepler: sayılar tüm registry'yi ya da sürüm dağılımını temsil etmiyor. |
+| `hata: eksik argüman: yeni` + `yardım: mcp-census karsilastir --help` | Kullanım hatası (çıkış 2); yardım o komutun `--help`'ini gösterir. |
 
 ## Tasarım
 
@@ -300,7 +336,7 @@ mcp_census/
 ## Testler
 
 ```bash
-uv run pytest        # 104 test, 1 saniyenin altında, hiçbiri ağa çıkmaz
+uv run pytest        # 148 test, 2 saniye, hiçbiri ağa çıkmaz
 ```
 
 `fetch` fonksiyonları test edilebilir bir `getirici` alıyor, CLI testleri
@@ -308,8 +344,9 @@ uv run pytest        # 104 test, 1 saniyenin altında, hiçbiri ağa çıkmaz
 ama 5xx denenir, tekrar eden imleç sonsuz döngüyü keser, sürüm satırları
 dağılımları şişirmez, **hiçbir bulgu paydasından büyük olamaz** (koruma
 yasası), kısmi sayım seriye girmez, `--surum` veri klasörünün dışına
-yazdıramaz, gzip bombası belleği dolduramaz ve bozuk girdi yığın izi değil
-`hata: …` verir.
+yazdıramaz, gzip bombası belleği dolduramaz, bozuk girdi yığın izi değil
+`hata: …` verir, README'deki her `mcp-census …` komutu ayrıştırıcıdan geçer ve
+elle çizilmiş `okunacak-kod.svg`'nin sayıları `veri/sayim.json`'la tutar.
 
 CI her push'ta Python 3.11, 3.12, 3.13 ve 3.14'te testleri koşar, paketi
 derleyip `twine check --strict` ile denetler ve tekerleği boş bir ortama

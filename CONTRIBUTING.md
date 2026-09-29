@@ -34,6 +34,13 @@ git diff --exit-code veri/ornek/sayim.json   # say deterministik; fark cikmamali
   ve bunu kilitleyen test bilerek guncellenir.
 - **Testler aga cikmaz.** `fetch` fonksiyonlari bir `getirici` alir; CLI
   testleri `fetch._istek`'i yamalar.
+- **Hata mesaji bir sonraki adimi soyler.** `hata: ...` tek satir, Turkce,
+  yazilacak komutla biter; `tests/test_ilk_kullanim.py` bunu kilitler. README'de
+  yeni bir `mcp-census ...` satiri eklersen o testin ayristirici sinamasindan
+  gecmesi gerekir.
+- **README demosu elle yazilmaz.** `pip install .` sonra
+  `python scripts/demo-uret.py` komutlari gercekten kosar ve
+  `docs/demo/komutlar.txt` kaydini yazar (video icin node + playwright + ffmpeg).
 - **Hata duzeltiyorsan once hatayi yakalayan testi yaz**, eski kodda
   kirildigini gor, sonra duzelt.
 
