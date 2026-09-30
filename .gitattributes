@@ -1,0 +1,7 @@
+# Sayim ciktilari bayt bayt yeniden uretilebilir olmali: say komutu LF yazar.
+# Windows'ta core.autocrlf=true iken bu dosyalar CRLF cikip `git status`i kirletiyordu.
+veri/**/*.json  text eol=lf
+veri/**/*.jsonl text eol=lf
+veri/**/*.csv   text eol=lf
+veri/*.json     text eol=lf
+veri/*.csv      text eol=lf
