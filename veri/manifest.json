@@ -1,12 +1,13 @@
 {
   "arac": "mcp-census",
-  "icerik_ozeti": "c36cf8e700eab15772714d198e5ff17292e666288e2873117ffadfe90feb2297",
-  "indirme_zamani_utc": "2026-09-16T04:08:56Z",
-  "kayit_sayisi": 105038,
+  "icerik_ozeti": "6646f937a8eda9329904d6e78cc05afaaee371fb5fa9f53e7b71b7fbe542deaa",
+  "indirme_zamani_utc": "2026-10-01T10:55:19Z",
+  "kayit_sayisi": 127542,
   "kaynak": "https://registry.modelcontextprotocol.io",
   "manifest_surumu": 1,
   "sayfa_boyu": 100,
-  "sayfa_sayisi": 1051,
-  "suren_saniye": 902.71,
+  "sayfa_sayisi": 1276,
+  "suren_saniye": 2160.09,
+  "suzgec": {},
   "tam_mi": true
 }

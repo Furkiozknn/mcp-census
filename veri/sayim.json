@@ -2,95 +2,95 @@
   "bulgular": [
     {
       "ad": "kayit_satiri",
-      "deger": 105038,
+      "deger": 127542,
       "payda": null,
       "tanim": "registry'nin /v0/servers ucundan dönen satır sayısı; sürüm başına bir satır",
       "yuzde": null
     },
     {
       "ad": "ayri_sunucu_adi",
-      "deger": 32318,
-      "payda": 105038,
+      "deger": 37996,
+      "payda": 127542,
       "tanim": "satırlardaki ayrı `server.name` değeri sayısı",
-      "yuzde": 30.8
+      "yuzde": 29.8
     },
     {
       "ad": "en_son_surumler",
-      "deger": 32318,
+      "deger": 37996,
       "payda": null,
       "tanim": "sunucu adı başına tek kayda indirgenmiş küme",
       "yuzde": null
     },
     {
       "ad": "isLatest_isaretli_satir",
-      "deger": 32318,
-      "payda": 105038,
+      "deger": 37996,
+      "payda": 127542,
       "tanim": "`_meta[...].isLatest` alanı true olan satır sayısı",
-      "yuzde": 30.8
+      "yuzde": 29.8
     },
     {
       "ad": "aktif_sunucu",
-      "deger": 31972,
-      "payda": 32318,
+      "deger": 37542,
+      "payda": 37996,
       "tanim": "en son sürümünün durumu `active` olan sunucu",
-      "yuzde": 98.9
+      "yuzde": 98.8
     },
     {
       "ad": "deposuz_sunucu",
-      "deger": 7439,
-      "payda": 32318,
+      "deger": 9322,
+      "payda": 37996,
       "tanim": "`server.repository` alanı olmayan sunucu — okunacak kaynak yok",
-      "yuzde": 23.0
+      "yuzde": 24.5
     },
     {
       "ad": "sadece_uzak_sunucu",
-      "deger": 18183,
-      "payda": 32318,
+      "deger": 21652,
+      "payda": 37996,
       "tanim": "yalnızca uzak uç sunan, indirilebilir paketi olmayan sunucu",
-      "yuzde": 56.3
+      "yuzde": 57.0
     },
     {
       "ad": "ne_paket_ne_uc",
-      "deger": 425,
-      "payda": 32318,
+      "deger": 461,
+      "payda": 37996,
       "tanim": "ne paket ne uzak uç bildiren sunucu — kurulacak bir şey yok",
-      "yuzde": 1.3
+      "yuzde": 1.2
     },
     {
       "ad": "kisa_aciklama",
-      "deger": 286,
-      "payda": 32318,
+      "deger": 343,
+      "payda": 37996,
       "tanim": "açıklaması 20 karakterden kısa sunucu",
       "yuzde": 0.9
     },
     {
       "ad": "tek_surumlu_sunucu",
-      "deger": 20244,
-      "payda": 32318,
+      "deger": 22079,
+      "payda": 37996,
       "tanim": "registry'de yalnızca tek sürümü olan sunucu",
-      "yuzde": 62.6
+      "yuzde": 58.1
     }
   ],
   "dagilimlar": {
     "depo_barindiricisi": {
-      "github.com": 24841,
-      "gitlab.com": 38
+      "github.com": 28627,
+      "gitlab.com": 47
     },
     "durum": {
-      "active": 31972,
-      "deprecated": 346
+      "active": 37542,
+      "deprecated": 454
     },
     "paket_turu": {
-      "cargo": 51,
-      "mcpb": 1221,
-      "npm": 8907,
-      "nuget": 116,
-      "oci": 919,
-      "pypi": 3785
+      "cargo": 64,
+      "mcpb": 1387,
+      "npm": 10526,
+      "nuget": 135,
+      "oci": 1032,
+      "pypi": 4125
     },
     "uzak_uc_turu": {
-      "sse": 1081,
-      "streamable-http": 19193
+      "sse": 1102,
+      "streamable-http": 23027
     }
   },
   "en_cok_surum_yayinlayan": [
@@ -100,71 +100,72 @@
     },
     {
       "ad": "ai.bowmark/bowmark",
-      "surum_sayisi": 828
+      "surum_sayisi": 945
     },
     {
       "ad": "io.github.devantler-tech/ksail",
-      "surum_sayisi": 439
+      "surum_sayisi": 500
     },
     {
       "ad": "com.linkbreakers/mcp",
-      "surum_sayisi": 402
+      "surum_sayisi": 419
     },
     {
       "ad": "io.github.havilandsoftware/mcp-server-innoday",
-      "surum_sayisi": 342
+      "surum_sayisi": 377
+    },
+    {
+      "ad": "io.github.yonatangross/orchestkit",
+      "surum_sayisi": 328
+    },
+    {
+      "ad": "app.newsmind/mcp",
+      "surum_sayisi": 326
     },
     {
       "ad": "io.github.hashgraph-online/hol-guard",
-      "surum_sayisi": 295
+      "surum_sayisi": 314
     },
     {
       "ad": "io.github.kivanccakmak/yaver",
       "surum_sayisi": 288
     },
     {
-      "ad": "app.newsmind/mcp",
-      "surum_sayisi": 271
-    },
-    {
       "ad": "io.github.KevinRabun/judges",
       "surum_sayisi": 258
+    },
+    {
+      "ad": "com.local-mcp/local-mcp",
+      "surum_sayisi": 254
     },
     {
       "ad": "io.github.avabuildsdata/mcp-us-business-data",
       "surum_sayisi": 252
     },
     {
-      "ad": "com.local-mcp/local-mcp",
-      "surum_sayisi": 250
-    },
-    {
       "ad": "io.github.appium/appium-mcp",
       "surum_sayisi": 245
     },
     {
-      "ad": "io.github.yonatangross/orchestkit",
-      "surum_sayisi": 222
-    },
-    {
       "ad": "com.senzing/mcp",
-      "surum_sayisi": 219
+      "surum_sayisi": 233
     },
     {
-      "ad": "ai.intuitek.the-stall/the-stall",
-      "surum_sayisi": 204
+      "ad": "so.pharaoh/pharaoh",
+      "surum_sayisi": 215
     }
   ],
   "kaynak_manifest": {
     "arac": "mcp-census",
-    "icerik_ozeti": "c36cf8e700eab15772714d198e5ff17292e666288e2873117ffadfe90feb2297",
-    "indirme_zamani_utc": "2026-09-16T04:08:56Z",
-    "kayit_sayisi": 105038,
+    "icerik_ozeti": "6646f937a8eda9329904d6e78cc05afaaee371fb5fa9f53e7b71b7fbe542deaa",
+    "indirme_zamani_utc": "2026-10-01T10:55:19Z",
+    "kayit_sayisi": 127542,
     "kaynak": "https://registry.modelcontextprotocol.io",
     "manifest_surumu": 1,
     "sayfa_boyu": 100,
-    "sayfa_sayisi": 1051,
-    "suren_saniye": 902.71,
+    "sayfa_sayisi": 1276,
+    "suren_saniye": 2160.09,
+    "suzgec": {},
     "tam_mi": true
   }
 }
