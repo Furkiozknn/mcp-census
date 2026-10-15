@@ -47,7 +47,7 @@
     ]
   },
   "tests": {
-    "count": 183,
+    "count": 199,
     "source": "CI log: `148 passed`",
     "measured": "2026-09-30"
   },

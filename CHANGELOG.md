@@ -19,6 +19,12 @@ değişiklikler (aylık `chore: aylik sayim` commit'leri) burada değil,
 
 ### Eklendi
 
+- **`mcp-census disa-aktar`** (İngilizce takma ad `export`): en son sürüm
+  kümesi, sunucu başına bir satır, CSV ya da JSON Lines
+  (`mcp_census/export.py`). Sütunlar sabit, satırlar ada göre sıralı; alanlar
+  `analyze.py`'nin tanımlarını kullanır, örnek veride toplamlar `say` ile
+  birebir tutuyor. CSV'de formül gibi başlayan hücrelere `'` eklenir (CSV
+  injection). Çıktı `.gitignore`'da.
 - **Kırılımlar** (`say` → `dagilimlar`): `kurulum_bicimi` (en son sürüm
   kümesini dörde bölen kurulum biçimi), `paket_turu_sunucu` ve
   `uzak_uc_turu_sunucu` (paket/uç türü **sunucu başına bir kez**; mevcut
