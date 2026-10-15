@@ -14,7 +14,7 @@ git clone https://github.com/Furkiozknn/mcp-census && cd mcp-census && uv run mc
 ![lisans](https://img.shields.io/badge/lisans-MIT-3fb950?style=flat-square&labelColor=0b0b0f)
 ![python](https://img.shields.io/badge/python-3.11%E2%80%933.14-3776ab?style=flat-square&labelColor=0b0b0f)
 ![bağımlılık](https://img.shields.io/badge/ba%C4%9F%C4%B1ml%C4%B1l%C4%B1k-0-3fb950?style=flat-square&labelColor=0b0b0f)
-![test](https://img.shields.io/badge/test-148%20ge%C3%A7iyor-6cb6ff?style=flat-square&labelColor=0b0b0f)
+![test](https://img.shields.io/badge/test-163%20ge%C3%A7iyor-6cb6ff?style=flat-square&labelColor=0b0b0f)
 ![ölçülen](https://img.shields.io/badge/%C3%B6l%C3%A7%C3%BClen-32.318%20sunucu-c9a961?style=flat-square&labelColor=0b0b0f)
 
 <img src="docs/demo/demo.gif" alt="Terminal demosu: mcp-census rapor 105.038 kayıt satırı ve 32.318 ayrı sunucu gösteriyor; örnek veriyle say komutu git'te fark bırakmıyor; yanlış klasörde hata bir sonraki komutu söylüyor" width="720">
@@ -126,7 +126,12 @@ destekliyor ve tam olarak sunucu başına bir satır döndürüyor —
 
 ## İkinci bulgu: registry'nin dörtte birinin okunacak kodu yok
 
-![Okunacak kodu olmayan kayıtlar, ölçekli: 32.318 sunucunun 7.439'unda repository alanı hiç yok, 18.183'ü yalnızca uzak uç sunuyor, 425'i ne paket ne uzak uç bildiriyor](https://raw.githubusercontent.com/Furkiozknn/mcp-census/master/assets/okunacak-kod.svg)
+![Okunacak kodu olmayan kayıtlar, ölçekli: depodaki son sayımda (veri/sayim.json) repository alanı olmayan, yalnızca uzak uç sunan ve ne paket ne uzak uç bildiren sunucular](https://raw.githubusercontent.com/Furkiozknn/mcp-census/master/assets/okunacak-kod.svg)
+
+<sub>Görsel elle çizilmiyor: `mcp-census gorsel`, `veri/sayim.json`'dan üretiyor ve
+bir test dosyanın sayımla bayt bayt aynı olduğunu denetliyor. Bu yüzden görsel
+depodaki **son** sayımı gösterir (şu an 1 Ekim 2026); aşağıdaki tablo ise 16 Eylül
+2026 sayımıdır.</sub>
 
 | Ölçüm | Sunucu | Oran |
 |---|---:|---:|
@@ -265,6 +270,7 @@ yüzden bir sayıya itiraz eden kişi aynı `kayitlar.jsonl` ile aynı sonucu
 | `rapor` | Okunur metin (`--json`, `--yaz DOSYA`) | `sayim.json` → stdout |
 | `karsilastir ESKI YENI` | İki indirmeyi sunucu adı düzeyinde karşılaştırır (`--json`) | iki `.jsonl` → stdout |
 | `seri` | Tam bir sayımı zaman serisine ekler (`--onceki SAYIM`, `--ozet DOSYA`) | `sayim.json` → `zaman-serisi.csv` |
+| `gorsel` | README görselini sayımdan üretir (`--cikti SVG`; `--denetle` yazmaz, uyuşmazlıkta çıkış 1) | `sayim.json` → `assets/okunacak-kod.svg` |
 
 ```bash
 uv run mcp-census indir                        # tamamı: ~15 dk, ~1050 sayfa
@@ -273,6 +279,7 @@ uv run mcp-census indir --azami-sayfa 5        # hızlı deneme (künyede tam_mi
 uv run mcp-census rapor --json                 # makine okunur
 uv run mcp-census karsilastir veri/kayitlar.jsonl veri/kayitlar-latest.jsonl
 uv run mcp-census seri --onceki eski-sayim.json
+uv run mcp-census gorsel --denetle             # görsel son sayımla aynı mı?
 ```
 
 `indir` seçenekleri: `--taban URL` (yalnızca `http(s)`), `--sayfa-boyu N`,
@@ -284,7 +291,7 @@ rakam, `.`, `_`, `+`, `-`), `--sessiz`.
 | Kod | Anlamı |
 |---:|---|
 | 0 | Başarılı |
-| 1 | `karsilastir`: yeni indirmede **kaybolan** sunucu var (eksik indirme ya da registry silmiş) |
+| 1 | `karsilastir`: yeni indirmede **kaybolan** sunucu var (eksik indirme ya da registry silmiş); `gorsel --denetle`: görsel sayımla uyuşmuyor |
 | 2 | Kullanım, ağ ya da dosya hatası — stderr'de tek satır `hata: …` |
 
 | Gördüğünüz | Sebep ve çözüm |
@@ -336,7 +343,7 @@ mcp_census/
 ## Testler
 
 ```bash
-uv run pytest        # 148 test, 2 saniye, hiçbiri ağa çıkmaz
+uv run pytest        # 163 test, 2 saniye, hiçbiri ağa çıkmaz
 ```
 
 `fetch` fonksiyonları test edilebilir bir `getirici` alıyor, CLI testleri

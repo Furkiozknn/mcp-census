@@ -23,7 +23,7 @@ import re
 import sys
 from pathlib import Path
 
-from . import __version__, analyze, fetch
+from . import __version__, analyze, fetch, gorsel
 
 VARSAYILAN_VERI = Path("veri")
 
@@ -271,6 +271,36 @@ def komut_seri(a: argparse.Namespace) -> int:
     return 0
 
 
+VARSAYILAN_GORSEL = Path("assets") / "okunacak-kod.svg"
+
+
+def komut_gorsel(a: argparse.Namespace) -> int:
+    """Render the README chart from <data>/sayim.json (no network)."""
+    veri = Path(a.veri)
+    sayim_yolu = veri / "sayim.json"
+    if not sayim_yolu.exists():
+        print(_sayim_yok(veri, sayim_yolu), file=sys.stderr)
+        return 2
+    try:
+        svg = gorsel.render(analyze.sayim_oku(sayim_yolu))
+    except gorsel.ChartError as e:
+        raise _GirdiHatasi(f"{sayim_yolu}: {e}") from e
+    cikti = Path(a.cikti)
+    if a.denetle:
+        mevcut = cikti.read_text(encoding="utf-8") if cikti.is_file() else None
+        if mevcut == svg:
+            print(f"{cikti} sayımla aynı")
+            return 0
+        print(f"hata: {cikti} {sayim_yolu} ile uyuşmuyor; `mcp-census gorsel` ile yeniden üretin",
+              file=sys.stderr)
+        return 1
+    cikti.parent.mkdir(parents=True, exist_ok=True)
+    with io.open(cikti, "w", encoding="utf-8", newline="\n") as f:
+        f.write(svg)
+    print(f"görsel yazıldı -> {cikti}")
+    return 0
+
+
 # argparse'in yardım başlıkları ve iç mesajları İngilizce gelir. Anahtar
 # bulunamazsa (Python sürümleri arasında metin değişebilir) İngilizcesi kalır;
 # hiçbir şey bozulmaz, yalnızca çevrilmez.
@@ -390,6 +420,14 @@ def kur() -> argparse.ArgumentParser:
                    help="Markdown özeti bu dosyanın sonuna da ekle "
                         "(ör. $GITHUB_STEP_SUMMARY)")
     z.set_defaults(fn=komut_seri)
+
+    g = komut("gorsel", "README görselini (okunacak-kod.svg) sayımdan üret (ağ yok)",
+              "mcp-census gorsel --denetle    # görsel sayımla aynı mı?")
+    g.add_argument("--cikti", default=str(VARSAYILAN_GORSEL), metavar="SVG",
+                   help="yazılacak dosya (varsayılan: %(default)s)")
+    g.add_argument("--denetle", action="store_true",
+                   help="yazma; dosya sayımla aynı değilse çıkış 1")
+    g.set_defaults(fn=komut_gorsel)
     return p
 
 
