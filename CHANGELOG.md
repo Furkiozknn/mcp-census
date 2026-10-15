@@ -19,6 +19,12 @@ değişiklikler (aylık `chore: aylik sayim` commit'leri) burada değil,
 
 ### Eklendi
 
+- **İngilizce takma adlar**: her komut (`download`, `count`, `report`,
+  `compare`, `series`, `chart`, `export`) ve her seçenek (`--data`,
+  `--max-pages`, `--page-size`, `--filter-version`, `--quiet`, `--base`,
+  `--write`, `--previous`, `--series-file`, `--summary`, `--output`,
+  `--check`, `--format`, `--records`). Türkçe adlar ve çıktılar değişmedi;
+  kullanım hataları yine Türkçe adı söylüyor (`--veri/--data` değil `--veri`).
 - **`mcp-census disa-aktar`** (İngilizce takma ad `export`): en son sürüm
   kümesi, sunucu başına bir satır, CSV ya da JSON Lines
   (`mcp_census/export.py`). Sütunlar sabit, satırlar ada göre sıralı; alanlar
