@@ -355,6 +355,9 @@ class _Ayristirici(argparse.ArgumentParser):
     `hata: …` tek satır, ardından ne yazılacağı. Çıkış kodu 2 (argparse ile aynı)."""
 
     def error(self, message: str):
+        # An option with an English alias is named "--veri/--data" by
+        # argparse; the message names the Turkish spelling, as before.
+        message = re.sub(r"^argument (--[\w-]+)(?:/--[\w-]+)+", r"argument \1", message)
         for desen, yerine in _HATA_CEVIRI:
             yeni_mesaj, n = desen.subn(yerine, message)
             if n:
@@ -372,6 +375,11 @@ _ORNEKLER = """hızlı başlangıç (ağ yok; depo kökünde):
 
 Yalnızca `indir` ağa çıkar. `--veri KLASÖR` komuttan önce de sonra da yazılabilir.
 Çıkış kodları: 0 başarılı · 1 karsilastir kayıp kayıt buldu · 2 girdi/ağ/dosya hatası.
+
+English: every command and flag has an English alias -- download, count,
+report, compare, series, chart, export; --data for --veri (e.g.
+`mcp-census --data veri/ornek report`). `mcp-census <command> --help` lists
+the flag aliases.
 """
 
 
@@ -387,12 +395,12 @@ def kur() -> argparse.ArgumentParser:
     )
     p.add_argument("--version", action="version",
                    version=f"%(prog)s {__version__}")
-    p.add_argument("--veri", default=str(VARSAYILAN_VERI), metavar="KLASÖR",
+    p.add_argument("--veri", "--data", default=str(VARSAYILAN_VERI), metavar="KLASÖR",
                    help="veri klasörü (varsayılan: veri)")
     # `--veri` komuttan sonra da yazılabilsin: `mcp-census rapor --veri veri/ornek`.
     # SUPPRESS: komutun kendi varsayılanı üstteki değeri ezmesin.
     ortak = argparse.ArgumentParser(add_help=False)
-    ortak.add_argument("--veri", default=argparse.SUPPRESS, metavar="KLASÖR",
+    ortak.add_argument("--veri", "--data", default=argparse.SUPPRESS, metavar="KLASÖR",
                        help="veri klasörü (varsayılan: veri)")
     alt = p.add_subparsers(dest="komut", required=True, metavar="komut",
                            parser_class=_Ayristirici)
@@ -402,63 +410,66 @@ def kur() -> argparse.ArgumentParser:
                               epilog="örnek: " + ornek, aliases=list(aliases))
 
     i = komut("indir", "registry'yi indir (ağa çıkan tek komut)",
-              "mcp-census indir --surum latest    # ~5 dk, kayitlar-latest.jsonl")
-    i.add_argument("--taban", type=_taban_turu, default=fetch.VARSAYILAN_TABAN,
+              "mcp-census indir --surum latest    # ~5 dk, kayitlar-latest.jsonl",
+              aliases=("download",))
+    i.add_argument("--taban", "--base", type=_taban_turu, default=fetch.VARSAYILAN_TABAN,
                    help="registry adresi, yalnızca http(s) (varsayılan: %(default)s)")
-    i.add_argument("--sayfa-boyu", type=_pozitif_tamsayi, default=fetch.SAYFA_BOYU,
+    i.add_argument("--sayfa-boyu", "--page-size", type=_pozitif_tamsayi, default=fetch.SAYFA_BOYU,
                    help="sayfa başına kayıt (varsayılan: %(default)s)")
-    i.add_argument("--azami-sayfa", type=_pozitif_tamsayi, default=None,
+    i.add_argument("--azami-sayfa", "--max-pages", type=_pozitif_tamsayi, default=None,
                    help="test için tavan; verilirse sayım TAM DEĞİL sayılır")
-    i.add_argument("--surum", type=_surum_turu, default=None, metavar="SUZGEC",
+    i.add_argument("--surum", "--filter-version", type=_surum_turu, default=None, metavar="SUZGEC",
                    help="registry'nin version süzgeci; `latest` sunucu başına "
                         "tek satır döndürür. Çıktı kayitlar-latest.jsonl olur.")
-    i.add_argument("--sessiz", action="store_true", help="ilerleme satırlarını basma")
+    i.add_argument("--sessiz", "--quiet", action="store_true", help="ilerleme satırlarını basma")
     i.set_defaults(fn=komut_indir)
 
     s = komut("say", "indirilmiş satırlardan sayımı üret (ağ yok)",
-              "mcp-census --veri veri/ornek say")
+              "mcp-census --veri veri/ornek say", aliases=("count",))
     s.set_defaults(fn=komut_say)
 
     r = komut("rapor", "sayımı okunur metne çevir (ağ yok)",
-              "mcp-census rapor | head -n 22")
+              "mcp-census rapor | head -n 22", aliases=("report",))
     r.add_argument("--json", action="store_true", help="makine okunur çıktı")
-    r.add_argument("--yaz", default=None, help="metni bu dosyaya da yaz")
+    r.add_argument("--yaz", "--write", default=None, help="metni bu dosyaya da yaz")
     r.set_defaults(fn=komut_rapor)
 
     k = komut("karsilastir", "iki indirmeyi sunucu adı düzeyinde karşılaştır (ağ yok)",
-              "mcp-census karsilastir veri/kayitlar.jsonl veri/kayitlar-latest.jsonl")
+              "mcp-census karsilastir veri/kayitlar.jsonl veri/kayitlar-latest.jsonl",
+              aliases=("compare",))
     k.add_argument("eski", help="önceki indirme (.jsonl)")
     k.add_argument("yeni", help="sonraki indirme (.jsonl); eskide olup yenide olmayan varsa çıkış 1")
     k.add_argument("--json", action="store_true", help="makine okunur çıktı")
     k.set_defaults(fn=komut_karsilastir)
 
     z = komut("seri", "tam bir sayımı veri/zaman-serisi.csv'ye ekle (ağ yok)",
-              "mcp-census seri --onceki eski-sayim.json")
-    z.add_argument("--onceki", default=None, metavar="SAYIM_JSON",
+              "mcp-census seri --onceki eski-sayim.json", aliases=("series",))
+    z.add_argument("--onceki", "--previous", default=None, metavar="SAYIM_JSON",
                    help="karşılaştırılacak önceki sayim.json")
-    z.add_argument("--seri", default=None, metavar="CSV",
+    z.add_argument("--seri", "--series-file", default=None, metavar="CSV",
                    help="seri dosyası (varsayılan: <veri>/zaman-serisi.csv)")
-    z.add_argument("--ozet", default=None, metavar="DOSYA",
+    z.add_argument("--ozet", "--summary", default=None, metavar="DOSYA",
                    help="Markdown özeti bu dosyanın sonuna da ekle "
                         "(ör. $GITHUB_STEP_SUMMARY)")
     z.set_defaults(fn=komut_seri)
 
     g = komut("gorsel", "README görselini (okunacak-kod.svg) sayımdan üret (ağ yok)",
-              "mcp-census gorsel --denetle    # görsel sayımla aynı mı?")
-    g.add_argument("--cikti", default=str(VARSAYILAN_GORSEL), metavar="SVG",
+              "mcp-census gorsel --denetle    # görsel sayımla aynı mı?",
+              aliases=("chart",))
+    g.add_argument("--cikti", "--output", default=str(VARSAYILAN_GORSEL), metavar="SVG",
                    help="yazılacak dosya (varsayılan: %(default)s)")
-    g.add_argument("--denetle", action="store_true",
+    g.add_argument("--denetle", "--check", action="store_true",
                    help="yazma; dosya sayımla aynı değilse çıkış 1")
     g.set_defaults(fn=komut_gorsel)
 
     d = komut("disa-aktar", "sunucu başına bir satır: CSV ya da JSON Lines (ağ yok)",
               "mcp-census --veri veri/ornek disa-aktar --cikti - | head",
               aliases=("export",))
-    d.add_argument("--bicim", choices=sorted(export.FORMATS), default="csv",
+    d.add_argument("--bicim", "--format", choices=sorted(export.FORMATS), default="csv",
                    help="çıktı biçimi (varsayılan: %(default)s)")
-    d.add_argument("--cikti", default=None, metavar="DOSYA",
+    d.add_argument("--cikti", "--output", default=None, metavar="DOSYA",
                    help="yazılacak dosya; `-` stdout (varsayılan: <veri>/sunucular.<bicim>)")
-    d.add_argument("--kayitlar", default=None, metavar="JSONL",
+    d.add_argument("--kayitlar", "--records", default=None, metavar="JSONL",
                    help="okunacak indirme (varsayılan: <veri>/kayitlar.jsonl)")
     d.set_defaults(fn=komut_disa_aktar)
     return p
