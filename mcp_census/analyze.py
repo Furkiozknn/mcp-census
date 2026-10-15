@@ -107,6 +107,49 @@ def sadece_uzak_mi(kayit: dict) -> bool:
     return bool(uzak_uclar(kayit)) and not paketler(kayit)
 
 
+def install_shape(kayit: dict) -> str:
+    """How a server can be used: what it offers to install or connect to.
+
+    The four values partition the latest-version set, so they always add up
+    to `en_son_surumler`: `yalnizca_paket` (a package you run yourself),
+    `yalnizca_uzak` (only a remote endpoint), `paket_ve_uzak` (both) and
+    `hicbiri` (neither - nothing to install).
+    """
+    has_package, has_remote = bool(paketler(kayit)), bool(uzak_uclar(kayit))
+    if has_package and has_remote:
+        return "paket_ve_uzak"
+    if has_package:
+        return "yalnizca_paket"
+    if has_remote:
+        return "yalnizca_uzak"
+    return "hicbiri"
+
+
+def namespace(kayit: dict) -> str:
+    """The part of `server.name` before the first '/', e.g. `io.github.acme`."""
+    name = ad(kayit)
+    return name.split("/", 1)[0] if "/" in name else ""
+
+
+def namespace_kind(kayit: dict) -> str:
+    """Which authority vouched for the namespace.
+
+    The registry proves a name in one of two ways: a GitHub login
+    (`io.github.<user>`) or control of a domain (reverse DNS such as
+    `com.example`). The share of each says how much of the registry rests on
+    a GitHub account rather than a domain someone owns.
+    """
+    ns = namespace(kayit)
+    if ns == "io.github" or ns.startswith("io.github."):
+        return "io.github"
+    if "." in ns:
+        return "alan_adi"
+    return "diger"
+
+
+TOP_NAMESPACES = 15
+
+
 def en_son_kayitlar(kayitlar: Iterable[dict]) -> list[dict]:
     """Sunucu adı başına tek kayıt.
 
@@ -127,6 +170,11 @@ def en_son_kayitlar(kayitlar: Iterable[dict]) -> list[dict]:
         elif not en_son_mu(onceki):
             secili[a] = kayit
     return list(secili.values())
+
+
+def _sorted_counts(counter: Counter) -> list[tuple[str, int]]:
+    """Most common first, ties by key, so the output is byte-stable."""
+    return sorted(counter.items(), key=lambda kv: (-kv[1], kv[0]))
 
 
 def sayim(kayitlar: list[dict]) -> dict[str, Any]:
@@ -157,6 +205,20 @@ def sayim(kayitlar: list[dict]) -> dict[str, Any]:
     for k in en_sonlar:
         for r in uzak_uclar(k):
             uc_turleri[str(r.get("type") or "bilinmiyor")] += 1
+
+    # Per server rather than per package: a server shipping two npm
+    # packages counts once here, twice in `paket_turu`.
+    paket_turu_sunucu: Counter[str] = Counter()
+    uc_turu_sunucu: Counter[str] = Counter()
+    for k in en_sonlar:
+        for t in {str(p.get("registryType") or "bilinmiyor") for p in paketler(k)}:
+            paket_turu_sunucu[t] += 1
+        for t in {str(r.get("type") or "bilinmiyor") for r in uzak_uclar(k)}:
+            uc_turu_sunucu[t] += 1
+
+    kurulum = Counter(install_shape(k) for k in en_sonlar)
+    ad_alani_turleri = Counter(namespace_kind(k) for k in en_sonlar)
+    ad_alanlari = Counter(namespace(k) for k in en_sonlar if namespace(k))
 
     surum_sayisi = Counter(adlar)
     tek_surumluler = sum(1 for _, c in surum_sayisi.items() if c == 1)
@@ -206,6 +268,12 @@ def sayim(kayitlar: list[dict]) -> dict[str, Any]:
             "paket_turu": dict(paket_turleri.most_common()),
             "uzak_uc_turu": dict(uc_turleri.most_common()),
             "depo_barindiricisi": dict(barindirici.most_common(10)),
+            "kurulum_bicimi": {k: kurulum.get(k, 0) for k in
+                               ("yalnizca_paket", "yalnizca_uzak", "paket_ve_uzak", "hicbiri")},
+            "paket_turu_sunucu": dict(_sorted_counts(paket_turu_sunucu)),
+            "uzak_uc_turu_sunucu": dict(_sorted_counts(uc_turu_sunucu)),
+            "ad_alani_turu": {k: ad_alani_turleri.get(k, 0) for k in ("io.github", "alan_adi", "diger")},
+            "en_buyuk_ad_alanlari": dict(_sorted_counts(ad_alanlari)[:TOP_NAMESPACES]),
         },
         "en_cok_surum_yayinlayan": [
             {"ad": a, "surum_sayisi": c} for a, c in en_cok_surumlu
@@ -348,7 +416,34 @@ SERI_SUTUNLARI = (
     "ne_paket_ne_uc",
     "kisa_aciklama",
     "tek_surumlu_sunucu",
+    # Added 2026-10: breakdowns. New columns are only ever appended, so the
+    # columns above keep their positions; rows written before a column existed
+    # read it as empty ("not measured"), never as zero.
+    "yalnizca_paket",
+    "paket_ve_uzak",
+    "npm_sunucu",
+    "pypi_sunucu",
+    "oci_sunucu",
+    "mcpb_sunucu",
+    "streamable_http_sunucu",
+    "io_github_ad_alani",
+    "alan_adi_ad_alani",
 )
+
+#: Series columns that come from a distribution rather than from a finding:
+#: column -> (distribution, key). A key missing from a distribution that
+#: exists is a real zero; a missing distribution leaves the cell empty.
+SERI_DAGILIM_SUTUNLARI: dict[str, tuple[str, str]] = {
+    "yalnizca_paket": ("kurulum_bicimi", "yalnizca_paket"),
+    "paket_ve_uzak": ("kurulum_bicimi", "paket_ve_uzak"),
+    "npm_sunucu": ("paket_turu_sunucu", "npm"),
+    "pypi_sunucu": ("paket_turu_sunucu", "pypi"),
+    "oci_sunucu": ("paket_turu_sunucu", "oci"),
+    "mcpb_sunucu": ("paket_turu_sunucu", "mcpb"),
+    "streamable_http_sunucu": ("uzak_uc_turu_sunucu", "streamable-http"),
+    "io_github_ad_alani": ("ad_alani_turu", "io.github"),
+    "alan_adi_ad_alani": ("ad_alani_turu", "alan_adi"),
+}
 
 
 def seri_satiri(sayim_sonucu: dict) -> dict[str, Any]:
@@ -361,8 +456,14 @@ def seri_satiri(sayim_sonucu: dict) -> dict[str, Any]:
     satir: dict[str, Any] = {
         "indirme_zamani_utc": (sayim_sonucu.get("kaynak_manifest") or {}).get("indirme_zamani_utc", "")
     }
+    dagilimlar = sayim_sonucu.get("dagilimlar") or {}
     for ad in SERI_SUTUNLARI[1:]:
-        satir[ad] = bulgular.get(ad, "")
+        if ad in SERI_DAGILIM_SUTUNLARI:
+            dagilim, anahtar = SERI_DAGILIM_SUTUNLARI[ad]
+            d = dagilimlar.get(dagilim)
+            satir[ad] = d.get(anahtar, 0) if isinstance(d, dict) else ""
+        else:
+            satir[ad] = bulgular.get(ad, "")
     return satir
 
 
@@ -413,6 +514,29 @@ def seri_ozeti(fark: dict[str, Any], yeni: dict, eklendi: bool) -> str:
     return "\n".join(satirlar) + "\n"
 
 
+def _seriyi_genislet(yol: Path, baslik: list[str], satirlar: list[dict[str, str]]) -> None:
+    """Rewrite an older series file under the current header.
+
+    Only an older header that is a prefix of `SERI_SUTUNLARI` is accepted:
+    columns were appended, so every existing cell keeps its meaning and the
+    new cells are empty. Any other header means the file is not one this
+    version wrote, and rewriting it could move a number into the wrong
+    column, so that is an error instead.
+    """
+    import csv
+
+    if not baslik or baslik != list(SERI_SUTUNLARI[: len(baslik)]):
+        raise SayimHatasi(
+            f"{yol}: sütunlar {','.join(baslik) or '(boş)'} bu sürümün sütunlarının "
+            "başı değil; dosya elle düzenlenmiş olabilir, yeniden yazılmadı"
+        )
+    with open(yol, "w", encoding="utf-8", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=list(SERI_SUTUNLARI), lineterminator="\n")
+        w.writeheader()
+        for r in satirlar:
+            w.writerow({k: r.get(k, "") or "" for k in SERI_SUTUNLARI})
+
+
 def seriye_ekle(yol: Path, satir: dict[str, Any]) -> bool:
     """Satırı CSV'ye ekler. Aynı zaman damgası zaten varsa hiçbir şey yapmaz.
 
@@ -429,9 +553,13 @@ def seriye_ekle(yol: Path, satir: dict[str, Any]) -> bool:
     var_olan: list[dict[str, str]] = []
     if yol.is_file():
         with open(yol, encoding="utf-8", newline="") as f:
-            var_olan = list(csv.DictReader(f))
+            okuyucu = csv.DictReader(f)
+            var_olan = list(okuyucu)
+            baslik = list(okuyucu.fieldnames or [])
         if any(r.get("indirme_zamani_utc") == damga for r in var_olan):
             return False
+        if baslik != list(SERI_SUTUNLARI):
+            _seriyi_genislet(yol, baslik, var_olan)
 
     yol.parent.mkdir(parents=True, exist_ok=True)
     yeni = yol.is_file() is False

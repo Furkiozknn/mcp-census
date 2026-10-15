@@ -14,7 +14,7 @@ git clone https://github.com/Furkiozknn/mcp-census && cd mcp-census && uv run mc
 ![lisans](https://img.shields.io/badge/lisans-MIT-3fb950?style=flat-square&labelColor=0b0b0f)
 ![python](https://img.shields.io/badge/python-3.11%E2%80%933.14-3776ab?style=flat-square&labelColor=0b0b0f)
 ![bağımlılık](https://img.shields.io/badge/ba%C4%9F%C4%B1ml%C4%B1l%C4%B1k-0-3fb950?style=flat-square&labelColor=0b0b0f)
-![test](https://img.shields.io/badge/test-163%20ge%C3%A7iyor-6cb6ff?style=flat-square&labelColor=0b0b0f)
+![test](https://img.shields.io/badge/test-183%20ge%C3%A7iyor-6cb6ff?style=flat-square&labelColor=0b0b0f)
 ![ölçülen](https://img.shields.io/badge/%C3%B6l%C3%A7%C3%BClen-32.318%20sunucu-c9a961?style=flat-square&labelColor=0b0b0f)
 
 <img src="docs/demo/demo.gif" alt="Terminal demosu: mcp-census rapor 105.038 kayıt satırı ve 32.318 ayrı sunucu gösteriyor; örnek veriyle say komutu git'te fark bırakmıyor; yanlış klasörde hata bir sonraki komutu söylüyor" width="720">
@@ -56,7 +56,7 @@ uv run mcp-census --veri veri/ornek rapor
 uv run mcp-census indir --surum latest       # the only command that uses the network (~5 min)
 ```
 
-`say` (count), `rapor` (report), `karsilastir` (compare two snapshots) and `seri` (append a full count to the time series) read only files on disk. Zero runtime dependencies, Python 3.11–3.14. The test suite never touches the network. A scheduled workflow re-counts the registry monthly into [`veri/zaman-serisi.csv`](veri/zaman-serisi.csv).
+`say` (count), `rapor` (report), `karsilastir` (compare two snapshots) and `seri` (append a full count to the time series) read only files on disk. Zero runtime dependencies, Python 3.11–3.14. The test suite never touches the network. A scheduled workflow re-counts the registry monthly into [`veri/zaman-serisi.csv`](veri/zaman-serisi.csv). Besides the headline counts, `say` breaks the latest-version set down per server: install shape (package only / remote only / both / neither), package and transport types counted once per server, namespace authority (`io.github.*` vs a reverse-DNS domain) and the 15 largest namespaces; nine of these are series columns.
 
 </details>
 
@@ -156,6 +156,28 @@ uzak uç          streamable-http 19.193 · sse 1.081
 paket            npm 8.907 · pypi 3.785 · mcpb 1.221 · oci 919 · nuget 116 · cargo 51
 durum            active 31.972 · deprecated 346
 ```
+
+### Kırılımlar: kurulum biçimi, sunucu başına tür, ad alanı
+
+Yukarıdaki `paket` satırı **paket** sayar: iki npm paketi yayınlayan bir sunucu
+iki kez girer. `say` artık aynı soruları **sunucu** düzeyinde de cevaplıyor
+(`sayim.json` → `dagilimlar`; `rapor` hepsini basar):
+
+| Dağılım | Ne sayar |
+|---|---|
+| `kurulum_bicimi` | `yalnizca_paket` · `yalnizca_uzak` · `paket_ve_uzak` · `hicbiri`. Dördü en son sürüm kümesini bölüştürür, toplamı `en_son_surumler`'e eşittir; `yalnizca_uzak` = `sadece_uzak_sunucu`, `hicbiri` = `ne_paket_ne_uc` |
+| `paket_turu_sunucu` | en az bir paketi o türden (npm, pypi, oci, mcpb…) olan sunucu |
+| `uzak_uc_turu_sunucu` | en az bir uzak ucu o türden (streamable-http, sse) olan sunucu |
+| `ad_alani_turu` | adın `/` öncesi: `io.github` (bir GitHub hesabıyla kanıtlanmış) · `alan_adi` (ters DNS, bir alan adının sahibi) · `diger` |
+| `en_buyuk_ad_alanlari` | en çok sunucu yayınlayan 15 ad alanı |
+
+Bu kırılımlardan dokuzu zaman serisine sütun olarak giriyor (`yalnizca_paket`,
+`paket_ve_uzak`, `npm_sunucu`, `pypi_sunucu`, `oci_sunucu`, `mcpb_sunucu`,
+`streamable_http_sunucu`, `io_github_ad_alani`, `alan_adi_ad_alani`). Yeni
+sütunlar yalnızca **sona** eklenir; eski bir CSV ilk `seri` çağrısında yeni
+başlıkla yeniden yazılır ve eski satırların yeni hücreleri **boş** kalır
+(o gün ölçülmedi; sıfır değil). Başlığı bu sürümün sütunlarının başı olmayan
+bir dosya yeniden yazılmaz, `seri` hata verir.
 
 ## Veri tazeliği
 
@@ -343,7 +365,7 @@ mcp_census/
 ## Testler
 
 ```bash
-uv run pytest        # 163 test, 2 saniye, hiçbiri ağa çıkmaz
+uv run pytest        # 183 test, 2 saniye, hiçbiri ağa çıkmaz
 ```
 
 `fetch` fonksiyonları test edilebilir bir `getirici` alıyor, CLI testleri
