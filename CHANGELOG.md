@@ -19,6 +19,13 @@ değişiklikler (aylık `chore: aylik sayim` commit'leri) burada değil,
 
 ### Eklendi
 
+- **`mcp-census gorsel`**: README görseli (`assets/okunacak-kod.svg`) artık
+  `veri/sayim.json`'dan üretiliyor (`mcp_census/gorsel.py`, yerleşim elle
+  çizilmiş özgünle bayt bayt aynı). `--denetle` yazmadan karşılaştırır,
+  uyuşmazlıkta çıkış 1. Sebep: 1 Ekim 2026 aylık sayımı `sayim.json`'ı
+  güncelledi ama elle çizilmiş görseli güncelleyemedi; `test_okunacak_kod_svg_sayimla_tutarli`
+  o commit'ten beri `master`'da kırmızıydı (bot commit'i CI'ı tetiklemediği
+  için görünmedi). Görsel 1 Ekim sayımıyla yeniden üretildi.
 - `--veri KLASÖR` komuttan sonra da yazılabiliyor (`mcp-census rapor --veri veri/ornek`);
   önceden `tanınmayan argüman` hatası veriyordu.
 - `rapor`, `--surum latest` ile indirilmiş (süzgeçli) veri için sürüm
