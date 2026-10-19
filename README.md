@@ -6,7 +6,7 @@
 git clone https://github.com/Furkiozknn/mcp-census && cd mcp-census && uv run mcp-census rapor
 ```
 
-<sub>Gereken tek şey [uv](https://pypi.org/project/uv/). Ağ yok: depodaki 16 Eylül 2026 sayımını okur. Boş bir klasörde klon + ilk rapor 5,8 s ölçüldü ([`docs/DENETIM.md`](docs/DENETIM.md)).</sub>
+<sub>Gereken tek şey [uv](https://pypi.org/project/uv/). Ağ yok: depodaki 1 Ekim 2026 sayımını okur. Boş bir klasörde klon + ilk rapor 5,8 s ölçüldü ([`docs/DENETIM.md`](docs/DENETIM.md)).</sub>
 
 <div align="center">
 
@@ -15,7 +15,7 @@ git clone https://github.com/Furkiozknn/mcp-census && cd mcp-census && uv run mc
 ![python](https://img.shields.io/badge/python-3.11%E2%80%933.14-3776ab?style=flat-square&labelColor=0b0b0f)
 ![bağımlılık](https://img.shields.io/badge/ba%C4%9F%C4%B1ml%C4%B1l%C4%B1k-0-3fb950?style=flat-square&labelColor=0b0b0f)
 ![test](https://img.shields.io/badge/test-214%20ge%C3%A7iyor-6cb6ff?style=flat-square&labelColor=0b0b0f)
-![ölçülen](https://img.shields.io/badge/%C3%B6l%C3%A7%C3%BClen-32.318%20sunucu-c9a961?style=flat-square&labelColor=0b0b0f)
+![ölçülen](https://img.shields.io/badge/%C3%B6l%C3%A7%C3%BClen-37.996%20sunucu-c9a961?style=flat-square&labelColor=0b0b0f)
 
 <img src="docs/demo/demo.gif" alt="Terminal demosu: mcp-census rapor 105.038 kayıt satırı ve 32.318 ayrı sunucu gösteriyor; örnek veriyle say komutu git'te fark bırakmıyor; yanlış klasörde hata bir sonraki komutu söylüyor" width="720">
 
@@ -27,7 +27,7 @@ git clone https://github.com/Furkiozknn/mcp-census && cd mcp-census && uv run mc
 |---|---|
 | Ekosistemde dolaşan bir sayıyı (kaç sunucu, kaçının kodu var) kendi elinizle yeniden üretmek | Bir MCP sunucusunun **güvenli** olup olmadığını öğrenmek: kod okumaz, bu bir sayım aracı. Denetim için [`mcp-vet`](https://github.com/Furkiozknn/mcp-vet) |
 | İki indirme arasında registry'nin ne kadar değiştiğini ölçmek (`karsilastir`) | mcp.so, Smithery, Glama gibi başka kataloglar: yalnızca resmî registry |
-| Bir sayıya itiraz etmek: tanımı, paydası ve ham verisi ortada | Anlık sayı: depodaki sayım **16 Eylül 2026**'dan, güncelini `indir` ile siz alırsınız ([veri tazeliği](#veri-tazeliği)) |
+| Bir sayıya itiraz etmek: tanımı, paydası ve ham verisi ortada | Anlık sayı: depodaki sayım **1 Ekim 2026**'dan, güncelini `indir` ile siz alırsınız ([veri tazeliği](#veri-tazeliği)) |
 
 <details>
 <summary><b>In English</b></summary>
@@ -36,21 +36,21 @@ git clone https://github.com/Furkiozknn/mcp-census && cd mcp-census && uv run mc
 
 **A reproducible count of the official MCP Registry.** It answers how many servers there are, how many have code you can read, and how many never run on your machine. The raw data, the code that produced each number and the definition of each number are all in this repository, so anyone can re-derive the numbers. The rest of this README is in Turkish.
 
-On 16 September 2026 the whole registry was downloaded (a separate `--surum latest` download on 29 September counted 37,477 distinct servers, about 16% more; see *Veri tazeliği* below):
+On 1 October 2026 the whole registry was downloaded (the 16 September download counted 32,318 distinct servers, so the registry grew about 18% since; see *Veri tazeliği* below):
 
 | Question | Answer |
 |---|---:|
-| Rows the `/v0/servers` endpoint returns | **105,038** |
-| Distinct servers | **32,318** |
-| Still `active` | **31,972** |
+| Rows the `/v0/servers` endpoint returns | **127,542** |
+| Distinct servers | **37,996** |
+| Still `active` | **37,542** |
 
-The endpoint returns one row per **version**, not per server. The mean is 3.25 versions per server, but the median is 1, so the inflation comes from a few repositories; one server alone accounts for 1,177 rows. Counting pages and calling the result "N servers" therefore overstates the total about threefold. The registry's `?version=latest` filter returns exactly one row per server (`mcp-census indir --surum latest`).
+The endpoint returns one row per **version**, not per server. The mean is 3.36 versions per server, but the median is 1, so the inflation comes from a few repositories; one server alone accounts for 1,177 rows. Counting pages and calling the result "N servers" therefore overstates the total about threefold. The registry's `?version=latest` filter returns exactly one row per server (`mcp-census indir --surum latest`).
 
-**A quarter of the registry has no code you can read.** 23.0% of servers declare no `repository` at all. 56.3% offer only a remote endpoint and no downloadable package, so whatever code you can read is not necessarily the code that runs.
+**A quarter of the registry has no code you can read.** 24.5% of servers declare no `repository` at all. 57.0% offer only a remote endpoint and no downloadable package, so whatever code you can read is not necessarily the code that runs.
 
 ```bash
 git clone https://github.com/Furkiozknn/mcp-census && cd mcp-census
-uv run mcp-census rapor                      # the 16 Sep 2026 count, from veri/sayim.json
+uv run mcp-census rapor                      # the 1 Oct 2026 count, from veri/sayim.json
 uv run mcp-census --veri veri/ornek say      # a 500-record sample ships with the repo
 uv run mcp-census --veri veri/ornek rapor
 uv run mcp-census indir --surum latest       # the only command that uses the network (~5 min)
@@ -67,7 +67,7 @@ Every command has an English alias, and so does every flag: `download` (`indir`)
 
 ## 30 saniyede dene
 
-İndirme gerekmez: 16 Eylül 2026 sayımı ve 500 kayıtlık bir örnek depoda.
+İndirme gerekmez: 1 Ekim 2026 sayımı ve 500 kayıtlık bir örnek depoda.
 Gereken tek şey [uv](https://pypi.org/project/uv/) (Python 3.11+ yoksa uv onu da indirir).
 
 ```bash
@@ -102,22 +102,22 @@ alır; almıyorsa aradaki fark ölçülebilir (`mcp-census karsilastir`).
 
 ## İlk bulgu: "kaç sunucu var" sorusunun cevabı üçe katlanabiliyor
 
-16 Eylül 2026'da resmî registry'nin tamamı indirildi.
+1 Ekim 2026'da resmî registry'nin tamamı indirildi.
 
 | Soru | Cevap |
 |---|---:|
-| `/v0/servers` ucu kaç **satır** döndürüyor? | **105.038** |
-| Kaç **ayrı sunucu** var? | **32.318** |
-| Kaçı hâlâ **yayında** (`active`)? | **31.972** |
+| `/v0/servers` ucu kaç **satır** döndürüyor? | **127.542** |
+| Kaç **ayrı sunucu** var? | **37.996** |
+| Kaçı hâlâ **yayında** (`active`)? | **37.542** |
 
 Fark, sunucu başına değil **sürüm** başına bir satır dönmesinden geliyor.
-Sunucu başına ortalama 3,25 sürüm var — ama **medyan 1**. Yani şişmenin
+Sunucu başına ortalama 3,36 sürüm var — ama **medyan 1**. Yani şişmenin
 kaynağı geniş bir eğilim değil, birkaç depo:
 
 ```
 io.github.brilliantdirectories/brilliant-directories-mcp   1.177 sürüm
-ai.bowmark/bowmark                                           828 sürüm
-io.github.devantler-tech/ksail                               439 sürüm
+ai.bowmark/bowmark                                           945 sürüm
+io.github.devantler-tech/ksail                               500 sürüm
 ```
 
 Tek bir sunucu 1.177 satır üretiyor. Sayfaları sayıp "registry'de N sunucu
@@ -133,31 +133,30 @@ destekliyor ve tam olarak sunucu başına bir satır döndürüyor —
 
 <sub>Görsel elle çizilmiyor: `mcp-census gorsel`, `veri/sayim.json`'dan üretiyor ve
 bir test dosyanın sayımla bayt bayt aynı olduğunu denetliyor. Bu yüzden görsel
-depodaki **son** sayımı gösterir (şu an 1 Ekim 2026); aşağıdaki tablo ise 16 Eylül
-2026 sayımıdır.</sub>
+depodaki **son** sayımı gösterir (şu an 1 Ekim 2026); aşağıdaki tablo da aynı sayımdandır.</sub>
 
 | Ölçüm | Sunucu | Oran |
 |---|---:|---:|
-| `repository` alanı **hiç yok** | 7.439 | **%23,0** |
-| Yalnızca uzak uç sunuyor, indirilebilir paket yok | 18.183 | **%56,3** |
-| Ne paket ne uzak uç bildiriyor — kurulacak bir şey yok | 425 | %1,3 |
+| `repository` alanı **hiç yok** | 9.322 | **%24,5** |
+| Yalnızca uzak uç sunuyor, indirilebilir paket yok | 21.652 | **%57,0** |
+| Ne paket ne uzak uç bildiriyor — kurulacak bir şey yok | 461 | %1,2 |
 
 İkisi de "kurmadan önce kodu oku" tavsiyesini doğrudan ilgilendiriyor:
 
-- **%23'ünde okunacak kaynak yok.** Depo adresi bildirilmemiş. Statik bir
+- **%24,5'inde okunacak kaynak yok.** Depo adresi bildirilmemiş. Statik bir
   denetleyici bu kayıtlar hakkında hiçbir şey söyleyemez.
-- **%56'sı yalnızca uzak uç.** Okuyabildiğiniz kod, çalışan kod olmak
+- **%57'si yalnızca uzak uç.** Okuyabildiğiniz kod, çalışan kod olmak
   zorunda değil; sunucu tarafında ne çalıştığını göremezsiniz.
 
-Kaynak kodu olanların neredeyse tamamı GitHub'da (24.841), GitLab'de yalnızca
-38 tane.
+Kaynak kodu olanların neredeyse tamamı GitHub'da (28.627), GitLab'de yalnızca
+47 tane.
 
 ### Taşıma ve paketleme dağılımı
 
 ```
-uzak uç          streamable-http 19.193 · sse 1.081
-paket            npm 8.907 · pypi 3.785 · mcpb 1.221 · oci 919 · nuget 116 · cargo 51
-durum            active 31.972 · deprecated 346
+uzak uç          streamable-http 23.027 · sse 1.102
+paket            npm 10.526 · pypi 4.125 · mcpb 1.387 · oci 1.032 · nuget 135 · cargo 64
+durum            active 37.542 · deprecated 454
 ```
 
 ### Kırılımlar: kurulum biçimi, sunucu başına tür, ad alanı
@@ -184,20 +183,21 @@ bir dosya yeniden yazılmaz, `seri` hata verir.
 
 ## Veri tazeliği
 
-Depodaki sayım (`veri/sayim.json`) **16 Eylül 2026**'da alındı; sonrasını yalnızca
+Depodaki sayım (`veri/sayim.json`) **1 Ekim 2026**'da alındı; sonrasını yalnızca
 ayın ilk günü çalışan iş akışı ([`sayim.yml`](.github/workflows/sayim.yml)) ekler.
-Registry o günden beri büyüdü. Aynı komutla (`mcp-census indir --surum latest`,
-5 dk 21 sn) **29 Eylül 2026** 22:16 UTC'de alınan ayrı bir indirme:
+Registry büyümeye devam ediyor. İlk ölçüm 16 Eylül 2026'daydı; arada aynı komutla
+(`mcp-census indir --surum latest`, 5 dk 21 sn) **29 Eylül 2026** 22:16 UTC'de ayrı
+bir indirme daha alındı:
 
-| Ölçüt | 16 Eylül (tam indirme, depoda) | 29 Eylül (`latest` indirmesi, depoda yok) |
-|---|---:|---:|
-| Ayrı sunucu adı | 32.318 | **37.477** |
-| `repository` alanı yok | 7.439 (%23,0) | 9.062 (%24,2) |
-| Yalnızca uzak uç | 18.183 (%56,3) | 21.301 (%56,8) |
-| Ne paket ne uç | 425 (%1,3) | 455 (%1,2) |
+| Ölçüt | 16 Eylül (tam indirme) | 29 Eylül (`latest` indirmesi, depoda yok) | 1 Ekim (tam indirme, depoda) |
+|---|---:|---:|---:|
+| Ayrı sunucu adı | 32.318 | 37.477 | **37.996** |
+| `repository` alanı yok | 7.439 (%23,0) | 9.062 (%24,2) | 9.322 (%24,5) |
+| Yalnızca uzak uç | 18.183 (%56,3) | 21.301 (%56,8) | 21.652 (%57,0) |
+| Ne paket ne uç | 425 (%1,3) | 455 (%1,2) | 461 (%1,2) |
 
-On dört günde sunucu sayısı yaklaşık %16 arttı; oranlar ise yerinde durdu. Bu
-ikinci sütun bu deponun başlık sayısı **değil**: farklı bir indirme yoluyla
+16 Eylül'den 1 Ekim'e sunucu sayısı yaklaşık %18 arttı; oranlar ise yerinde durdu.
+Ortadaki sütun bu deponun başlık sayısı **değil**: farklı bir indirme yoluyla
 alındı ve ham dosyası depoda durmuyor (künye özeti `d06973cd…`). Kendi
 elinizle yeniden üretmek için `indir --surum latest` çalıştırın; sayı sizin
 koşunuzda bugünün sayısı olur. `latest` dosyası sürüm başına satır içermez, bu
@@ -230,7 +230,7 @@ indirme sessizce geçemez.
 
 ## Aynı soru, aylar sonra
 
-Tek bir sayım bir fotoğraftır. `veri/sayim.json` 16 Eylül 2026'da ölçüldü ve o
+Tek bir sayım bir fotoğraftır. `veri/sayim.json` 1 Ekim 2026'da ölçüldü (ilk ölçüm 16 Eylül'dü) ve o
 günden sonra registry'nin nereye gittiğini söylemiyor — oysa bir sayım aracının
 asıl değeri orada: "kaç sunucunun okunacak kodu yok" sorusunun cevabı artıyor
 mu, azalıyor mu?
