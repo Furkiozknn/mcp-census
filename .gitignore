@@ -9,3 +9,8 @@ build/
 # Ham veri buyuk; surumlenmis ornek "veri/ornek/" altinda tutulur.
 veri/kayitlar.jsonl
 veri/kayitlar-latest.jsonl
+# `disa-aktar` ciktisi ham veriden turetilir; depoya girmez.
+veri/sunucular.csv
+veri/sunucular.jsonl
+veri/ornek/sunucular.csv
+veri/ornek/sunucular.jsonl

@@ -14,7 +14,7 @@ git clone https://github.com/Furkiozknn/mcp-census && cd mcp-census && uv run mc
 ![lisans](https://img.shields.io/badge/lisans-MIT-3fb950?style=flat-square&labelColor=0b0b0f)
 ![python](https://img.shields.io/badge/python-3.11%E2%80%933.14-3776ab?style=flat-square&labelColor=0b0b0f)
 ![bağımlılık](https://img.shields.io/badge/ba%C4%9F%C4%B1ml%C4%B1l%C4%B1k-0-3fb950?style=flat-square&labelColor=0b0b0f)
-![test](https://img.shields.io/badge/test-183%20ge%C3%A7iyor-6cb6ff?style=flat-square&labelColor=0b0b0f)
+![test](https://img.shields.io/badge/test-199%20ge%C3%A7iyor-6cb6ff?style=flat-square&labelColor=0b0b0f)
 ![ölçülen](https://img.shields.io/badge/%C3%B6l%C3%A7%C3%BClen-32.318%20sunucu-c9a961?style=flat-square&labelColor=0b0b0f)
 
 <img src="docs/demo/demo.gif" alt="Terminal demosu: mcp-census rapor 105.038 kayıt satırı ve 32.318 ayrı sunucu gösteriyor; örnek veriyle say komutu git'te fark bırakmıyor; yanlış klasörde hata bir sonraki komutu söylüyor" width="720">
@@ -56,7 +56,7 @@ uv run mcp-census --veri veri/ornek rapor
 uv run mcp-census indir --surum latest       # the only command that uses the network (~5 min)
 ```
 
-`say` (count), `rapor` (report), `karsilastir` (compare two snapshots) and `seri` (append a full count to the time series) read only files on disk. Zero runtime dependencies, Python 3.11–3.14. The test suite never touches the network. A scheduled workflow re-counts the registry monthly into [`veri/zaman-serisi.csv`](veri/zaman-serisi.csv). Besides the headline counts, `say` breaks the latest-version set down per server: install shape (package only / remote only / both / neither), package and transport types counted once per server, namespace authority (`io.github.*` vs a reverse-DNS domain) and the 15 largest namespaces; nine of these are series columns.
+`say` (count), `rapor` (report), `karsilastir` (compare two snapshots) and `seri` (append a full count to the time series) read only files on disk. Zero runtime dependencies, Python 3.11–3.14. The test suite never touches the network. A scheduled workflow re-counts the registry monthly into [`veri/zaman-serisi.csv`](veri/zaman-serisi.csv). Besides the headline counts, `say` breaks the latest-version set down per server: install shape (package only / remote only / both / neither), package and transport types counted once per server, namespace authority (`io.github.*` vs a reverse-DNS domain) and the 15 largest namespaces; nine of these are series columns. `mcp-census export` (alias of `disa-aktar`) writes the latest-version set as one row per server, CSV or JSON Lines, with the same definitions the count uses, so a spreadsheet total matches `sayim.json`; CSV cells that would start a formula are prefixed with `'`.
 
 </details>
 
@@ -292,6 +292,7 @@ yüzden bir sayıya itiraz eden kişi aynı `kayitlar.jsonl` ile aynı sonucu
 | `rapor` | Okunur metin (`--json`, `--yaz DOSYA`) | `sayim.json` → stdout |
 | `karsilastir ESKI YENI` | İki indirmeyi sunucu adı düzeyinde karşılaştırır (`--json`) | iki `.jsonl` → stdout |
 | `seri` | Tam bir sayımı zaman serisine ekler (`--onceki SAYIM`, `--ozet DOSYA`) | `sayim.json` → `zaman-serisi.csv` |
+| `disa-aktar` (`export`) | Sunucu başına bir satır, en son sürüm: ad, ad alanı, sürüm, durum, sürüm sayısı, kurulum biçimi, paket/uç türleri, depo (`--bicim csv\|jsonl`, `--cikti DOSYA\|-`, `--kayitlar JSONL`) | `kayitlar.jsonl` → `sunucular.csv` |
 | `gorsel` | README görselini sayımdan üretir (`--cikti SVG`; `--denetle` yazmaz, uyuşmazlıkta çıkış 1) | `sayim.json` → `assets/okunacak-kod.svg` |
 
 ```bash
@@ -302,7 +303,17 @@ uv run mcp-census rapor --json                 # makine okunur
 uv run mcp-census karsilastir veri/kayitlar.jsonl veri/kayitlar-latest.jsonl
 uv run mcp-census seri --onceki eski-sayim.json
 uv run mcp-census gorsel --denetle             # görsel son sayımla aynı mı?
+uv run mcp-census --veri veri/ornek disa-aktar --bicim jsonl --cikti -
 ```
+
+`disa-aktar` sayımın kullandığı alanları, **aynı tanımlarla** sunucu başına
+yazar: tablodaki `repository_url` boş satırları `deposuz_sunucu`'yu,
+`install_shape = yalnizca_uzak` satırları `sadece_uzak_sunucu`'yu verir (bir
+test örnek veride bunu denetliyor). Satırlar ada göre sıralı, sütunlar sabit;
+aynı indirme iki kez bayt bayt aynı tabloyu üretir. Registry alanlarını sunucu
+yayınlayan herkes yazdığı için CSV'de `=`, `+`, `-`, `@` ile başlayan hücrelere
+`'` eklenir: dosyayı bir hesap tablosunda açmak formül çalıştırmaz. JSON Lines
+olduğu gibi kalır.
 
 `indir` seçenekleri: `--taban URL` (yalnızca `http(s)`), `--sayfa-boyu N`,
 `--azami-sayfa N`, `--surum SUZGEC` (dosya adına girdiği için yalnızca harf,
@@ -365,7 +376,7 @@ mcp_census/
 ## Testler
 
 ```bash
-uv run pytest        # 183 test, 2 saniye, hiçbiri ağa çıkmaz
+uv run pytest        # 199 test, 2 saniye, hiçbiri ağa çıkmaz
 ```
 
 `fetch` fonksiyonları test edilebilir bir `getirici` alıyor, CLI testleri

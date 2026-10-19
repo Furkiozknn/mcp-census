@@ -23,7 +23,7 @@ import re
 import sys
 from pathlib import Path
 
-from . import __version__, analyze, fetch, gorsel
+from . import __version__, analyze, export, fetch, gorsel
 
 VARSAYILAN_VERI = Path("veri")
 
@@ -271,6 +271,28 @@ def komut_seri(a: argparse.Namespace) -> int:
     return 0
 
 
+def komut_disa_aktar(a: argparse.Namespace) -> int:
+    """One row per server (latest version) as CSV or JSON Lines (no network)."""
+    veri = Path(a.veri)
+    kayit_yolu = Path(a.kayitlar) if a.kayitlar else veri / "kayitlar.jsonl"
+    if not kayit_yolu.is_file():
+        print(f"hata: {kayit_yolu} yok. Önce `mcp-census indir`.\n"
+              f"      Beklemeden denemek için: `mcp-census --veri veri/ornek disa-aktar`",
+              file=sys.stderr)
+        return 2
+    tablo = export.rows(fetch.jsonl_oku(kayit_yolu))
+    metin = export.FORMATS[a.bicim](tablo)
+    if a.cikti == "-":
+        sys.stdout.write(metin)
+        return 0
+    cikti = Path(a.cikti) if a.cikti else veri / f"sunucular.{a.bicim}"
+    cikti.parent.mkdir(parents=True, exist_ok=True)
+    with io.open(cikti, "w", encoding="utf-8", newline="\n") as f:
+        f.write(metin)
+    print(f"{len(tablo)} sunucu -> {cikti}")
+    return 0
+
+
 VARSAYILAN_GORSEL = Path("assets") / "okunacak-kod.svg"
 
 
@@ -375,9 +397,9 @@ def kur() -> argparse.ArgumentParser:
     alt = p.add_subparsers(dest="komut", required=True, metavar="komut",
                            parser_class=_Ayristirici)
 
-    def komut(ad, yardim, ornek):
+    def komut(ad, yardim, ornek, aliases=()):
         return alt.add_parser(ad, help=yardim, description=yardim, parents=[ortak],
-                              epilog="örnek: " + ornek)
+                              epilog="örnek: " + ornek, aliases=list(aliases))
 
     i = komut("indir", "registry'yi indir (ağa çıkan tek komut)",
               "mcp-census indir --surum latest    # ~5 dk, kayitlar-latest.jsonl")
@@ -428,6 +450,17 @@ def kur() -> argparse.ArgumentParser:
     g.add_argument("--denetle", action="store_true",
                    help="yazma; dosya sayımla aynı değilse çıkış 1")
     g.set_defaults(fn=komut_gorsel)
+
+    d = komut("disa-aktar", "sunucu başına bir satır: CSV ya da JSON Lines (ağ yok)",
+              "mcp-census --veri veri/ornek disa-aktar --cikti - | head",
+              aliases=("export",))
+    d.add_argument("--bicim", choices=sorted(export.FORMATS), default="csv",
+                   help="çıktı biçimi (varsayılan: %(default)s)")
+    d.add_argument("--cikti", default=None, metavar="DOSYA",
+                   help="yazılacak dosya; `-` stdout (varsayılan: <veri>/sunucular.<bicim>)")
+    d.add_argument("--kayitlar", default=None, metavar="JSONL",
+                   help="okunacak indirme (varsayılan: <veri>/kayitlar.jsonl)")
+    d.set_defaults(fn=komut_disa_aktar)
     return p
 
 
