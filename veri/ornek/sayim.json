@@ -72,12 +72,40 @@
     }
   ],
   "dagilimlar": {
+    "ad_alani_turu": {
+      "alan_adi": 116,
+      "diger": 0,
+      "io.github": 351
+    },
     "depo_barindiricisi": {
       "github.com": 399
     },
     "durum": {
       "active": 466,
       "deprecated": 1
+    },
+    "en_buyuk_ad_alanlari": {
+      "ai.smithery": 2,
+      "com.mcparmory": 3,
+      "io.github.AIops-tools": 4,
+      "io.github.AceDataCloud": 3,
+      "io.github.CSOAI-ORG": 12,
+      "io.github.Evozim": 4,
+      "io.github.YawLabs": 4,
+      "io.github.chrischall": 6,
+      "io.github.codespar": 3,
+      "io.github.cyanheads": 15,
+      "io.github.mcp-dir": 5,
+      "io.github.n24q02m": 4,
+      "io.github.pipeworx-io": 8,
+      "io.github.sadri-dridi": 11,
+      "io.github.theluckystrike": 4
+    },
+    "kurulum_bicimi": {
+      "hicbiri": 6,
+      "paket_ve_uzak": 44,
+      "yalnizca_paket": 272,
+      "yalnizca_uzak": 145
     },
     "paket_turu": {
       "mcpb": 34,
@@ -86,9 +114,20 @@
       "oci": 47,
       "pypi": 94
     },
+    "paket_turu_sunucu": {
+      "mcpb": 21,
+      "npm": 181,
+      "nuget": 5,
+      "oci": 45,
+      "pypi": 93
+    },
     "uzak_uc_turu": {
       "sse": 15,
       "streamable-http": 180
+    },
+    "uzak_uc_turu_sunucu": {
+      "sse": 15,
+      "streamable-http": 179
     }
   },
   "en_cok_surum_yayinlayan": [

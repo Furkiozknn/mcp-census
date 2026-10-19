@@ -19,6 +19,14 @@ değişiklikler (aylık `chore: aylik sayim` commit'leri) burada değil,
 
 ### Eklendi
 
+- **Kırılımlar** (`say` → `dagilimlar`): `kurulum_bicimi` (en son sürüm
+  kümesini dörde bölen kurulum biçimi), `paket_turu_sunucu` ve
+  `uzak_uc_turu_sunucu` (paket/uç türü **sunucu başına bir kez**; mevcut
+  `paket_turu` paket sayar), `ad_alani_turu` (`io.github` / `alan_adi` /
+  `diger`) ve `en_buyuk_ad_alanlari` (ilk 15). Dokuz yeni zaman serisi sütunu
+  sona eklendi; eski CSV ilk `seri`de yeni başlıkla yeniden yazılır, eski
+  satırların yeni hücreleri boş kalır, tanınmayan başlık reddedilir.
+  `veri/zaman-serisi.csv` genişletildi, `veri/ornek/sayim.json` yeniden üretildi.
 - **`mcp-census gorsel`**: README görseli (`assets/okunacak-kod.svg`) artık
   `veri/sayim.json`'dan üretiliyor (`mcp_census/gorsel.py`, yerleşim elle
   çizilmiş özgünle bayt bayt aynı). `--denetle` yazmadan karşılaştırır,
